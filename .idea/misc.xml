@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/app_list_drawable.xml" value="0.262" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/background_btn_drawable.xml" value="0.2675" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/car_home_drawable.xml" value="0.2235" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/car_navigation_drawable.xml" value="0.2235" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/car_phone_drawable.xml" value="0.2235" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/car_tiktok_drawable.xml" value="0.2235" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/cast_screen_drawable.xml" value="0.2505" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/dialog_loading_bg.xml" value="0.2655" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/local_music_drawable.xml" value="0.262" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/online_radio_drawable.xml" value="0.262" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/return_car_system_drawable.xml" value="0.2675" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/setting_drawable.xml" value="0.2505" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/voice_drawable.xml" value="0.241" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/drawable/weather_drawable.xml" value="0.241" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/activity_car_home.xml" value="0.25833333333333336" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/activity_car_show.xml" value="0.35260416666666666" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/activity_client.xml" value="0.30520833333333336" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/activity_main.xml" value="0.3536458333333333" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/activity_tips.xml" value="0.26145833333333335" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/activity_wifi_direct.xml" value="0.28958333333333336" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/app_list_item.xml" value="0.24166666666666667" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/client_activity_main.xml" value="0.3536458333333333" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/dialog_loading.xml" value="0.28958333333333336" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/fragment_car_app.xml" value="0.2526041666666667" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/fragment_car_home_one.xml" value="0.23385416666666667" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/fragment_car_home_two.xml" value="0.23489583333333333" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/item_device.xml" value="0.28958333333333336" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/mirror_window.xml" value="0.35260416666666666" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/layout/window_float_view.xml" value="0.275" />
+        <entry key="..\:/Connection/MirrorCast/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.247" />
+        <entry key="..\:/Desktop/MirrorCast/app/src/main/res/layout/activity_car_show.xml" value="0.1" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
