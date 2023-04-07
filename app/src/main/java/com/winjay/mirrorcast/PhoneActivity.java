@@ -9,6 +9,7 @@ import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Toast;
 
@@ -60,6 +61,9 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
 
     private void initView() {
         binding.btnWifiP2p.setOnClickListener(this);
+
+
+        binding.aoaSendBtn.setOnClickListener(this);
     }
 
     @Override
@@ -68,6 +72,16 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
         if (view == binding.btnWifiP2p) {
             Intent intent = new Intent(this, WIFIDirectActivity.class);
             startActivity(intent);
+        }
+
+
+        if (view == binding.aoaSendBtn) {
+            if (TextUtils.isEmpty(binding.aoaEd.getText().toString())) {
+                toast("内容不能为空！");
+                return;
+            }
+
+            sendAOAMsg(binding.aoaEd.getText().toString());
         }
     }
 
@@ -168,7 +182,6 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
 
         if (accessories == null) {
             LogUtil.d(TAG, "accessories list is null");
-            toast("accessories list is null");
             return;
         }
 
@@ -209,12 +222,22 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
                             String receiveText = new String(data);
                             LogUtil.d(TAG, "receiveText=" + receiveText);
 
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(PhoneActivity.this, receiveText, Toast.LENGTH_SHORT).show();
-                                }
-                            });
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    Toast.makeText(PhoneActivity.this, receiveText, Toast.LENGTH_SHORT).show();
+//                                }
+//                            });
+
+                            if (receiveText.startsWith("car:")) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        String str = binding.aoaMsgTv.getText().toString() + "\n";
+                                        binding.aoaMsgTv.setText(str + "车机：" + receiveText);
+                                    }
+                                });
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -222,23 +245,32 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
                 }
             }).start();
 
-            sendMsg();
+            sendAOAMsg("msg from phone.");
         }
     }
 
-    private void sendMsg() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                LogUtil.d(TAG, "phone send msg.");
-                try {
-                    String test = "phone test";
-                    mOutputStream.write(test.getBytes());
-                } catch (IOException e) {
-                    e.printStackTrace();
+    private void sendAOAMsg(String msg) {
+        if (mOutputStream != null) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    LogUtil.d(TAG, "phone send msg.");
+                    try {
+                        mOutputStream.write(("phone:" + msg).getBytes());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String str = binding.aoaMsgTv.getText().toString() + "\n";
+                            binding.aoaMsgTv.setText(str + "手机：" + msg);
+                        }
+                    });
                 }
-            }
-        }).start();
+            }).start();
+        }
     }
     /////////////////////////////////// AOA ///////////////////////////////////
 

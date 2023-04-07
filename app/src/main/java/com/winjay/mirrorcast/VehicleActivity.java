@@ -85,6 +85,9 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
         binding.connectMirrorCastServer.setOnClickListener(this);
         binding.btnStartReceive.setOnClickListener(this);
         binding.btnCarHome.setOnClickListener(this);
+
+
+        binding.aoaSendBtn.setOnClickListener(this);
     }
 
 
@@ -175,6 +178,17 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 //            options.setLaunchDisplayId(2);
 //            Bundle optsBundle = options.toBundle();
 //            startActivity(intent, optsBundle);
+        }
+
+
+
+        if (v == binding.aoaSendBtn) {
+            if (TextUtils.isEmpty(binding.aoaEd.getText().toString())) {
+                toast("内容不能为空！");
+                return;
+            }
+
+            sendAOAMsg(binding.aoaEd.getText().toString());
         }
     }
 
@@ -371,15 +385,16 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
             switch (action) {
                 case ACTION_USB_PERMISSION:
                     synchronized (this) {
-//                        UsbAccessory accessory = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
-//                        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-//                            // 权限已被授予，可以打开连接外部 USB 设备的通道
-////                            openAccessory(accessory);
-//                            LogUtil.d(TAG, "permission granted for accessory " + accessory);
-//                        } else {
-//                            // 未授权访问外部 USB 设备
-//                            LogUtil.d(TAG, "permission denied for accessory " + accessory);
-//                        }
+                        UsbAccessory accessory = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
+                        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                            // 权限已被授予，可以打开连接外部 USB 设备的通道
+
+//                            openAccessory(accessory);
+                            LogUtil.d(TAG, "permission granted for accessory " + accessory);
+                        } else {
+                            // 未授权访问外部 USB 设备
+                            LogUtil.d(TAG, "permission denied for accessory " + accessory);
+                        }
 
                         UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                         if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
@@ -398,7 +413,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                 case UsbManager.ACTION_USB_DEVICE_ATTACHED:
                     // 外部 USB 设备已连接
                     UsbDevice attachDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-//                    if (attachDevice != null && isAccessory(detachedDevice)) {
+//                    if (attachDevice != null && isAccessory(attachDevice)) {
 //                        LogUtil.d(TAG, "request device permission");
 //                        // 请求权限访问外部 USB 设备
 //                        mUsbManager.requestPermission(attachDevice, mPermissionIntent);
@@ -442,27 +457,74 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                         String response = new String(buffer, 0, bytesRead);
                         LogUtil.d(TAG, "host received=" + response);
 
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            Toast.makeText(VehicleActivity.this, response, Toast.LENGTH_SHORT).show();
-//                        }
-//                    });
+                        if (response.startsWith("phone:")) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    String str = binding.aoaMsgTv.getText().toString() + "\n";
+                                    binding.aoaMsgTv.setText(str + "手机：" + response);
+                                }
+                            });
+                        }
                     }
                 }
             }
         }).start();
 
 
-        new Thread(new Runnable() {
+        sendAOAMsg("msg from car.");
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                // 发送数据
+//                byte[] data = "this is usb host".getBytes();
+//                int result = usbDeviceConnection.bulkTransfer(epOut, data, data.length, 0);
+//                LogUtil.d(TAG, "host send result=" + result);
+//            }
+//        }).start();
+    }
+
+    private void toast2(String msg) {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                // 发送数据
-                byte[] data = "this is usb host".getBytes();
-                int result = usbDeviceConnection.bulkTransfer(epOut, data, data.length, 0);
-                LogUtil.d(TAG, "host send result=" + result);
+                Toast.makeText(VehicleActivity.this, msg, Toast.LENGTH_SHORT).show();
             }
-        }).start();
+        });
+    }
+
+    private void sendAOAMsg(String msg) {
+        if (usbDeviceConnection != null && usbInterface != null) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    epOut = usbInterface.getEndpoint(1);
+                    // 发送数据
+                    byte[] data = ("car:" + msg).getBytes();
+                    int result = usbDeviceConnection.bulkTransfer(epOut, data, data.length, 0);
+                    LogUtil.d(TAG, "host send result=" + result);
+
+                    toast2("result=" + result);
+
+//                    if (result > 0) {
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                String str = binding.aoaMsgTv.getText().toString() + "\n";
+//                                binding.aoaMsgTv.setText(str + "车机：" + msg);
+//                            }
+//                        });
+//                    } else {
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                toast("发送失败！");
+//                            }
+//                        });
+//                    }
+                }
+            }).start();
+        }
     }
 
     private void closeAccessory() {
@@ -474,16 +536,9 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
     }
 
     private boolean isAccessory(UsbDevice usbDevice) {
-        boolean result = usbDevice.getVendorId() == VID_ACCESSORY
+        return usbDevice.getVendorId() == VID_ACCESSORY
                 && usbDevice.getProductId() >= PID_ACCESSORY_ONLY
                 && usbDevice.getProductId() <= PID_ACCESSORY_AUDIO_ADB_BULK;
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                toast(result ? "支持配件模式！" : "不支持配件模式！");
-            }
-        });
-        return result;
     }
 
     public boolean changeToAccessoryMode(UsbDevice usbDevice) {
@@ -589,7 +644,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 //        System.exit(0);
 
         isTerminated = true;
-        closeAccessory();
         unregisterUsbReceiver();
+        closeAccessory();
     }
 }

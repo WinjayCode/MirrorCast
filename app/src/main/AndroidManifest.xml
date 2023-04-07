@@ -90,11 +90,13 @@
 
         <activity
             android:name=".VehicleActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:launchMode="singleTask"/>
 
         <activity
             android:name=".PhoneActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTask">
 
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />

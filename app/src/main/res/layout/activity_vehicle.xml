@@ -6,45 +6,56 @@
 
     <Button
         android:id="@+id/btn_wifi_p2p"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:text="WIFI直连"
-        android:textSize="30dp" />
+        style="@style/BtnStyle"
+        android:text="WIFI直连" />
 
     <EditText
         android:id="@+id/ip_ed"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:hint="192.168.49.1"
-        android:textSize="30dp" />
+        style="@style/BtnStyle"
+        android:hint="192.168.49.1" />
 
     <Button
         android:id="@+id/btn_start_record"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
+        style="@style/BtnStyle"
         android:text="开始投屏"
-        android:textSize="30dp"
         android:visibility="gone" />
 
     <Button
         android:id="@+id/connect_mirror_cast_server"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:text="连接投屏服务"
-        android:textSize="30dp" />
+        style="@style/BtnStyle"
+        android:text="连接投屏服务" />
 
     <Button
         android:id="@+id/btn_start_receive"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:text="接收投屏"
-        android:textSize="30dp" />
+        style="@style/BtnStyle"
+        android:text="接收投屏" />
 
     <Button
         android:id="@+id/btn_car_home"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
+        style="@style/BtnStyle"
         android:text="Car Launcher"
-        android:textAllCaps="false"
-        android:textSize="30dp" />
+        android:textAllCaps="false" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/aoa_send_btn"
+            style="@style/BtnStyle"
+            android:layout_width="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="发送" />
+
+        <EditText
+            android:id="@+id/aoa_ed"
+            style="@style/BtnStyle"
+            android:layout_toLeftOf="@+id/aoa_send_btn"
+            android:hint="有线连接" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/aoa_msg_tv"
+        style="@style/BtnStyle"
+        android:layout_height="match_parent" />
 </LinearLayout>
