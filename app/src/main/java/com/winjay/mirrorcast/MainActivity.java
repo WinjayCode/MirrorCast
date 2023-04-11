@@ -57,11 +57,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    private void startActivity(Class<?> cls) {
-        Intent intent = new Intent(this, cls);
-        startActivity(intent);
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();

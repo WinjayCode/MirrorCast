@@ -15,6 +15,11 @@
         android:hint="192.168.49.1" />
 
     <Button
+        android:id="@+id/btn_aoa"
+        style="@style/BtnStyle"
+        android:text="AOA有线连接" />
+
+    <Button
         android:id="@+id/btn_start_record"
         style="@style/BtnStyle"
         android:text="开始投屏"
@@ -35,27 +40,4 @@
         style="@style/BtnStyle"
         android:text="Car Launcher"
         android:textAllCaps="false" />
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <Button
-            android:id="@+id/aoa_send_btn"
-            style="@style/BtnStyle"
-            android:layout_width="wrap_content"
-            android:layout_alignParentRight="true"
-            android:text="发送" />
-
-        <EditText
-            android:id="@+id/aoa_ed"
-            style="@style/BtnStyle"
-            android:layout_toLeftOf="@+id/aoa_send_btn"
-            android:hint="有线连接" />
-    </RelativeLayout>
-
-    <TextView
-        android:id="@+id/aoa_msg_tv"
-        style="@style/BtnStyle"
-        android:layout_height="match_parent" />
 </LinearLayout>

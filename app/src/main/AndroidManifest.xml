@@ -90,13 +90,26 @@
 
         <activity
             android:name=".VehicleActivity"
-            android:exported="true"
-            android:launchMode="singleTask"/>
+            android:exported="true" />
 
         <activity
             android:name=".PhoneActivity"
-            android:exported="true"
-            android:launchMode="singleTask">
+            android:exported="true" />
+
+        <!-- wifi direct -->
+        <activity
+            android:name=".wifidirect.WIFIDirectActivity"
+            android:exported="true" />
+        <!-- wifi direct -->
+
+        <!-- aoa -->
+        <activity
+            android:name=".aoa.VehicleAOAActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".aoa.PhoneAOAActivity"
+            android:exported="true">
 
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
@@ -106,12 +119,7 @@
                 android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
                 android:resource="@xml/accessory_filter" />
         </activity>
-
-        <!-- wifi direct -->
-        <activity
-            android:name=".wifidirect.WIFIDirectActivity"
-            android:exported="true" />
-        <!-- wifi direct -->
+        <!-- aoa -->
 
         <!-- server -->
         <service

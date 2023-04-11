@@ -1,5 +1,6 @@
 package com.winjay.mirrorcast;
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -16,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.winjay.mirrorcast.util.HandlerManager;
 import com.winjay.mirrorcast.util.LogUtil;
 import com.winjay.mirrorcast.wifidirect.LoadingDialog;
+import com.winjay.mirrorcast.wifidirect.WIFIDirectActivity;
 
 import java.util.List;
 
@@ -156,6 +158,11 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
         if (loadingDialog != null) {
             loadingDialog.cancel();
         }
+    }
+
+    public void startActivity(Class<?> cls) {
+        Intent intent = new Intent(this, cls);
+        startActivity(intent);
     }
 
     ////////////////////////////////////////// permission //////////////////////////////////////////

@@ -1,21 +1,11 @@
 package com.winjay.mirrorcast;
 
 import android.app.ActivityOptions;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
-import android.hardware.usb.UsbAccessory;
-import android.hardware.usb.UsbConstants;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbEndpoint;
-import android.hardware.usb.UsbInterface;
-import android.hardware.usb.UsbManager;
 import android.media.MediaRouter;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
@@ -23,10 +13,10 @@ import android.text.TextUtils;
 import android.view.Display;
 import android.view.SurfaceView;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.winjay.mirrorcast.aoa.VehicleAOAActivity;
 import com.winjay.mirrorcast.app_mirror.AppSocketServer;
 import com.winjay.mirrorcast.app_mirror.AppSocketServerManager;
 import com.winjay.mirrorcast.car.client.CarShowActivity;
@@ -75,19 +65,15 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
         serverThread.start();
 
         AppSocketServerManager.getInstance().startServer();
-
-        registerUsbReceiver();
     }
 
     private void initView() {
         binding.btnWifiP2p.setOnClickListener(this);
+        binding.btnAoa.setOnClickListener(this);
         binding.btnStartRecord.setOnClickListener(this);
         binding.connectMirrorCastServer.setOnClickListener(this);
         binding.btnStartReceive.setOnClickListener(this);
         binding.btnCarHome.setOnClickListener(this);
-
-
-        binding.aoaSendBtn.setOnClickListener(this);
     }
 
 
@@ -95,11 +81,14 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
     public void onClick(View v) {
         // wifi p2p
         if (v == binding.btnWifiP2p) {
-            Intent intent = new Intent(this, WIFIDirectActivity.class);
-            startActivity(intent);
+            startActivity(WIFIDirectActivity.class);
 
 //            Intent intent = new Intent(this, CarLauncherActivity.class);
 //            startActivity(intent);
+        }
+        // aoa
+        if (v == binding.btnAoa) {
+            startActivity(VehicleAOAActivity.class);
         }
         if (v == binding.btnStartRecord) {
 //            if (!isRecording) {
@@ -178,17 +167,6 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 //            options.setLaunchDisplayId(2);
 //            Bundle optsBundle = options.toBundle();
 //            startActivity(intent, optsBundle);
-        }
-
-
-
-        if (v == binding.aoaSendBtn) {
-            if (TextUtils.isEmpty(binding.aoaEd.getText().toString())) {
-                toast("内容不能为空！");
-                return;
-            }
-
-            sendAOAMsg(binding.aoaEd.getText().toString());
         }
     }
 
@@ -336,305 +314,6 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
         }
     }
 
-
-    /////////////////////////////////// AOA ///////////////////////////////////
-    private UsbManager mUsbManager;
-    private UsbDeviceConnection mUsbDeviceConnection;
-    private static final int AOA_GET_PROTOCOL = 51;
-    private static final int AOA_SEND_IDENT = 52;
-    private static final int AOA_START_ACCESSORY = 53;
-    private static final String AOA_MANUFACTURER = "MobileDriveTech";
-    private static final String AOA_MODEL_NAME = "SuperLink";
-    private static final String AOA_DESCRIPTION = "MobileDriveTech SuperLink";
-    private static final String AOA_VERSION = "1.0.0";
-    private static final String AOA_URI = "http://www.abc.com.cn/";
-    private static final String AOA_SERIAL_NUMBER = "123456.";
-    private PendingIntent mPermissionIntent;
-    private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
-    private static final int VID_ACCESSORY = 0x18D1;
-    private static final int PID_ACCESSORY_ONLY = 0x2D00;
-    private static final int PID_ACCESSORY_AUDIO_ADB_BULK = 0x2D05;
-    private UsbInterface usbInterface;
-    private UsbDeviceConnection usbDeviceConnection;
-    private UsbEndpoint epIn;
-    private UsbEndpoint epOut;
-    private boolean isTerminated = false;
-
-    private void registerUsbReceiver() {
-        mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        // PendingIntent.FLAG_INMUTABLE 会导致权限请求失败！！！
-        mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_MUTABLE);
-        IntentFilter intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
-        intentFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        intentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        registerReceiver(usbReceiver, intentFilter);
-    }
-
-    private void unregisterUsbReceiver() {
-        unregisterReceiver(usbReceiver);
-    }
-
-    private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            LogUtil.d(TAG, "action=" + action);
-            if (TextUtils.isEmpty(action)) {
-                return;
-            }
-            switch (action) {
-                case ACTION_USB_PERMISSION:
-                    synchronized (this) {
-                        UsbAccessory accessory = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
-                        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                            // 权限已被授予，可以打开连接外部 USB 设备的通道
-
-//                            openAccessory(accessory);
-                            LogUtil.d(TAG, "permission granted for accessory " + accessory);
-                        } else {
-                            // 未授权访问外部 USB 设备
-                            LogUtil.d(TAG, "permission denied for accessory " + accessory);
-                        }
-
-                        UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                            LogUtil.d(TAG, "permission granted for device " + device);
-                            // 权限已被授予，可以打开连接外部 USB 设备的通道
-//                            openAccessory(accessory);
-                            changeToAccessoryMode(device);
-                            openAccessory(device);
-                        } else {
-                            // 未授权访问外部 USB 设备
-                            LogUtil.d(TAG, "permission denied for device " + device);
-//                            mUsbManager.requestPermission(attachedDevice, mPermissionIntent);
-                        }
-                    }
-                    break;
-                case UsbManager.ACTION_USB_DEVICE_ATTACHED:
-                    // 外部 USB 设备已连接
-                    UsbDevice attachDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-//                    if (attachDevice != null && isAccessory(attachDevice)) {
-//                        LogUtil.d(TAG, "request device permission");
-//                        // 请求权限访问外部 USB 设备
-//                        mUsbManager.requestPermission(attachDevice, mPermissionIntent);
-//                    } else {
-//                        changeToAccessoryMode(attachDevice);
-//                    }
-
-                    if (mUsbManager.hasPermission(attachDevice)) {
-                        openAccessory(attachDevice);
-                    } else {
-                        mUsbManager.requestPermission(attachDevice, mPermissionIntent);
-                    }
-                    break;
-                case UsbManager.ACTION_USB_DEVICE_DETACHED:
-                    // 外部 USB 设备已断开
-                    UsbDevice detachedDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                    if (detachedDevice != null && isAccessory(detachedDevice)) {
-                        LogUtil.d(TAG, "device had been detached");
-                        closeAccessory();
-                    }
-                    break;
-            }
-        }
-    };
-
-    private void openAccessory(UsbDevice device) {
-        usbInterface = device.getInterface(0);
-        usbDeviceConnection = mUsbManager.openDevice(device);
-        usbDeviceConnection.claimInterface(usbInterface, true);
-        epIn = usbInterface.getEndpoint(0);
-        epOut = usbInterface.getEndpoint(1);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (!isTerminated) {
-                    // 接收数据
-                    byte[] buffer = new byte[1024];
-                    int bytesRead = usbDeviceConnection.bulkTransfer(epIn, buffer, buffer.length, 0);
-                    if (bytesRead > 0) {
-                        String response = new String(buffer, 0, bytesRead);
-                        LogUtil.d(TAG, "host received=" + response);
-
-                        if (response.startsWith("phone:")) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    String str = binding.aoaMsgTv.getText().toString() + "\n";
-                                    binding.aoaMsgTv.setText(str + "手机：" + response);
-                                }
-                            });
-                        }
-                    }
-                }
-            }
-        }).start();
-
-
-        sendAOAMsg("msg from car.");
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                // 发送数据
-//                byte[] data = "this is usb host".getBytes();
-//                int result = usbDeviceConnection.bulkTransfer(epOut, data, data.length, 0);
-//                LogUtil.d(TAG, "host send result=" + result);
-//            }
-//        }).start();
-    }
-
-    private void toast2(String msg) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(VehicleActivity.this, msg, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void sendAOAMsg(String msg) {
-        if (usbDeviceConnection != null && usbInterface != null) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    epOut = usbInterface.getEndpoint(1);
-                    // 发送数据
-                    byte[] data = ("car:" + msg).getBytes();
-                    int result = usbDeviceConnection.bulkTransfer(epOut, data, data.length, 0);
-                    LogUtil.d(TAG, "host send result=" + result);
-
-                    toast2("result=" + result);
-
-//                    if (result > 0) {
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                String str = binding.aoaMsgTv.getText().toString() + "\n";
-//                                binding.aoaMsgTv.setText(str + "车机：" + msg);
-//                            }
-//                        });
-//                    } else {
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                toast("发送失败！");
-//                            }
-//                        });
-//                    }
-                }
-            }).start();
-        }
-    }
-
-    private void closeAccessory() {
-        if (usbDeviceConnection != null) {
-            LogUtil.d(TAG);
-            usbDeviceConnection.releaseInterface(usbInterface);
-            usbDeviceConnection.close();
-        }
-    }
-
-    private boolean isAccessory(UsbDevice usbDevice) {
-        return usbDevice.getVendorId() == VID_ACCESSORY
-                && usbDevice.getProductId() >= PID_ACCESSORY_ONLY
-                && usbDevice.getProductId() <= PID_ACCESSORY_AUDIO_ADB_BULK;
-    }
-
-    public boolean changeToAccessoryMode(UsbDevice usbDevice) {
-        mUsbDeviceConnection = mUsbManager.openDevice(usbDevice);
-
-        LogUtil.d(TAG);
-        if (usbDevice == null) {
-            return false;
-        }
-        if (!getProtocolVersion()) {
-            LogUtil.w(TAG, "Change Accessory Mode getProtocolVersion Fail");
-            return false;
-        }
-        if (!sendIdentityStrings()) {
-            LogUtil.w(TAG, "Change Accessory Mode sendIdentityStrings Fail");
-            return false;
-        }
-        if (!startAccessoryMode()) {
-            LogUtil.w(TAG, "Change Accessory Mode startAccessoryMode Fail");
-            return false;
-        }
-        LogUtil.d(TAG, "Change Accessory Mode Success");
-        return true;
-    }
-
-    private boolean getProtocolVersion() {
-        byte[] buffer = new byte[2];
-        if (controlTransferIn(AOA_GET_PROTOCOL, 0, 0, buffer) < 0) {
-            LogUtil.w(TAG, "get protocol version fail");
-            return false;
-        }
-
-        int version = buffer[1] << 8 | buffer[0];
-        if (version < 1 || version > 2) {
-            LogUtil.e(TAG, "usb device not capable of AOA 1.0 or 2.0, version = " + version);
-            return false;
-        }
-        LogUtil.d(TAG, "usb device AOA version is " + version);
-        return true;
-    }
-
-    private boolean sendIdentityStrings() {
-        if (controlTransferOut(AOA_SEND_IDENT, 0, 0, AOA_MANUFACTURER.getBytes()) < 0) {
-            LogUtil.w(TAG, "send identity AOA_MANUFACTURER fail");
-            return false;
-        }
-        if (controlTransferOut(AOA_SEND_IDENT, 0, 1, AOA_MODEL_NAME.getBytes()) < 0) {
-            LogUtil.w(TAG, "send identity AOA_MODEL_NAME fail");
-            return false;
-        }
-        if (controlTransferOut(AOA_SEND_IDENT, 0, 2, AOA_DESCRIPTION.getBytes()) < 0) {
-            LogUtil.w(TAG, "send identity AOA_DESCRIPTION fail");
-            return false;
-        }
-        if (controlTransferOut(AOA_SEND_IDENT, 0, 3, AOA_VERSION.getBytes()) < 0) {
-            LogUtil.w(TAG, "send identity AOA_VERSION fail");
-            return false;
-        }
-        if (controlTransferOut(AOA_SEND_IDENT, 0, 4, AOA_URI.getBytes()) < 0) {
-            LogUtil.w(TAG, "send identity AOA_URI fail");
-            return false;
-        }
-        if (controlTransferOut(AOA_SEND_IDENT, 0, 5, AOA_SERIAL_NUMBER.getBytes()) < 0) {
-            LogUtil.w(TAG, "send identity AOA_SERIAL_NUMBER fail");
-            return false;
-        }
-        LogUtil.d(TAG, "send indentity string success");
-        return true;
-    }
-
-    private boolean startAccessoryMode() {
-        if (controlTransferOut(AOA_START_ACCESSORY, 0, 0, null) < 0) {
-            LogUtil.w(TAG, "start accessory mode fail");
-            return false;
-        }
-        LogUtil.d(TAG, "start accessory mode success");
-        return true;
-    }
-
-    private int controlTransferOut(int request, int value, int index, byte[] buffer) {
-        if (mUsbDeviceConnection == null) {
-            return -1;
-        }
-        return mUsbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_OUT | UsbConstants.USB_TYPE_VENDOR, request,
-                value, index, buffer, buffer == null ? 0 : buffer.length, 0);
-    }
-
-    private int controlTransferIn(int request, int value, int index, byte[] buffer) {
-        if (mUsbDeviceConnection == null) {
-            return -1;
-        }
-        return mUsbDeviceConnection.controlTransfer(UsbConstants.USB_DIR_IN | UsbConstants.USB_TYPE_VENDOR, request,
-                value, index, buffer, buffer == null ? 0 : buffer.length, 0);
-    }
-    /////////////////////////////////// AOA ///////////////////////////////////
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -642,9 +321,5 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
         serverThread.close();
         AppSocketServerManager.getInstance().stopServer();
 //        System.exit(0);
-
-        isTerminated = true;
-        unregisterUsbReceiver();
-        closeAccessory();
     }
 }
