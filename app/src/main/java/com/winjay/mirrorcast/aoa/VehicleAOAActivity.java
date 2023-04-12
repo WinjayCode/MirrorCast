@@ -245,10 +245,15 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 
         if (getProtocolVersion()) {
             if (sendIdentityStrings()) {
-                startAccessoryMode();
+                if (startAccessoryMode()) {
+                    toast2("配件打开成功2！");
+                    usbDeviceConnection.releaseInterface(usbInterface);
+                    usbDeviceConnection.close();
+                    usbDeviceConnection = null;
+                    checkDevice();
+                }
 
-                toast2("配件打开成功2！");
-                receiveAOAMsg();
+//                receiveAOAMsg();
 //                sendAOAMsg("msg from car.");
             }
         }
@@ -310,11 +315,11 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     private void sendAOAMsg(String msg) {
         LogUtil.d(TAG, "msg=" + msg);
         if (usbDeviceConnection != null && usbInterface != null) {
-            usbDeviceConnection.claimInterface(usbInterface, true);
+//            usbDeviceConnection.claimInterface(usbInterface, true);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    UsbEndpoint epOut = usbInterface.getEndpoint(1);
+//                    UsbEndpoint epOut = usbInterface.getEndpoint(1);
 //                    findEndpoint();
                     // 发送数据
                     byte[] data = ("car:" + msg).getBytes();
@@ -345,6 +350,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     }
 
     private void closeAccessory() {
+        isTerminated = true;
         if (usbDeviceConnection != null) {
             LogUtil.d(TAG);
             usbDeviceConnection.releaseInterface(usbInterface);
@@ -461,7 +467,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     protected void onDestroy() {
         super.onDestroy();
         LogUtil.d(TAG);
-        isTerminated = true;
+
         unregisterUsbReceiver();
         closeAccessory();
     }
