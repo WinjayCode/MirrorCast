@@ -105,6 +105,7 @@
         <!-- aoa -->
         <activity
             android:name=".aoa.VehicleAOAActivity"
+            android:launchMode="singleTask"
             android:exported="true" />
 
         <activity

@@ -1,6 +1,5 @@
 package com.winjay.mirrorcast.decode;
 
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -13,8 +12,6 @@ import androidx.annotation.NonNull;
 import com.winjay.mirrorcast.BaseActivity;
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.SendCommands;
-import com.winjay.mirrorcast.app_mirror.AppSocketClient;
-import com.winjay.mirrorcast.app_mirror.AppSocketClientManager;
 import com.winjay.mirrorcast.app_mirror.AppSocketServer;
 import com.winjay.mirrorcast.app_mirror.AppSocketServerManager;
 import com.winjay.mirrorcast.databinding.ActivityClientBinding;
@@ -242,7 +239,7 @@ public class ScreenDecoderActivity extends BaseActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            toast("投屏启动失败!");
+                            dialogToast("投屏启动失败!");
                         }
                     });
                 }

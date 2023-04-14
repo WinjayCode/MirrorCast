@@ -27,7 +27,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.winjay.mirrorcast.AppApplication;
 import com.winjay.mirrorcast.BaseActivity;
-import com.winjay.mirrorcast.MainActivity;
 import com.winjay.mirrorcast.databinding.ActivityWifiDirectBinding;
 import com.winjay.mirrorcast.util.LogUtil;
 import com.winjay.mirrorcast.util.NetUtil;
@@ -130,7 +129,7 @@ public class WIFIDirectActivity extends BaseActivity {
         @Override
         public void onDisconnection() {
             LogUtil.d(TAG);
-            toast("设备连接断开！");
+            dialogToast("设备连接断开！");
             mWifiP2pDeviceList.clear();
             deviceAdapter.notifyDataSetChanged();
             binding.tvStatus.setText(null);
@@ -263,7 +262,7 @@ public class WIFIDirectActivity extends BaseActivity {
 
     private void connect() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            toast("请先授予位置权限");
+            dialogToast("请先授予位置权限");
             return;
         }
         WifiP2pConfig config = new WifiP2pConfig();
@@ -275,14 +274,14 @@ public class WIFIDirectActivity extends BaseActivity {
                 @Override
                 public void onSuccess() {
                     LogUtil.d(TAG, "wifi p2p connect success.");
-                    toast("连接成功");
+                    dialogToast("连接成功");
                     dismissLoadingDialog();
                 }
 
                 @Override
                 public void onFailure(int reason) {
                     LogUtil.d(TAG, "connect onFailure=" + reason);
-                    toast("连接失败：" + reason);
+                    dialogToast("连接失败：" + reason);
                     dismissLoadingDialog();
                 }
             });
@@ -311,11 +310,11 @@ public class WIFIDirectActivity extends BaseActivity {
     private void search() {
         LogUtil.d(TAG);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            toast("请先授予位置权限");
+            dialogToast("请先授予位置权限");
             return;
         }
         if (!wifiP2pEnabled) {
-            toast("需要先打开Wifi");
+            dialogToast("需要先打开Wifi");
             return;
         }
         showLoadingDialog("正在搜索附近设备");
@@ -330,7 +329,7 @@ public class WIFIDirectActivity extends BaseActivity {
 
             @Override
             public void onFailure(int reasonCode) {
-                toast("搜索失败");
+                dialogToast("搜索失败");
                 cancelLoadingDialog();
             }
         });
@@ -341,7 +340,7 @@ public class WIFIDirectActivity extends BaseActivity {
      */
     private void createGroup() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            toast("请先授予位置权限");
+            dialogToast("请先授予位置权限");
             return;
         }
         wifiP2pManager.createGroup(channel, new WifiP2pManager.ActionListener() {
@@ -372,7 +371,7 @@ public class WIFIDirectActivity extends BaseActivity {
                 if (wifiP2pManager != null && channel != null) {
                     startActivity(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS));
                 } else {
-                    toast("当前设备不支持Wifi Direct!");
+                    dialogToast("当前设备不支持Wifi Direct!");
                 }
                 return true;
             case 1:

@@ -8,6 +8,9 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.text.TextUtils;
 import android.view.View;
@@ -40,14 +43,8 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
     private ParcelFileDescriptor mFileDescriptor;
     private FileInputStream mInputStream;
     private FileOutputStream mOutputStream;
-    private boolean isTerminated = false;
 
-//    @Override
-//    protected void onNewIntent(Intent intent) {
-//        super.onNewIntent(intent);
-//        LogUtil.d(TAG, "action=" + intent.getAction());
-//        setIntent(intent);
-//    }
+    private static final int MESSAGE_LOG = 1;
 
     @Override
     protected View viewBinding() {
@@ -77,7 +74,7 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
     public void onClick(View v) {
         if (v == binding.aoaSendBtn) {
             if (TextUtils.isEmpty(binding.aoaEd.getText().toString())) {
-                toast("内容不能为空！");
+                dialogToast("内容不能为空！");
                 return;
             }
 
@@ -91,7 +88,6 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-//        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
         registerReceiver(mUsbReceiver, filter);
     }
 
@@ -112,9 +108,11 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
                     UsbAccessory accessory = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
                     //获取accessory句柄成功
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        LogUtil.d(TAG, "prepare to open accessory_filter stream");
-                        mAccessory = accessory;
-                        openAccessory();
+                        if (accessory != null) {
+                            LogUtil.d(TAG, "prepare to open accessory_filter stream");
+                            mAccessory = accessory;
+                            openAccessory();
+                        }
                     } else {
                         LogUtil.d(TAG, "permission denied for accessory " + accessory);
                         mAccessory = null;
@@ -184,7 +182,6 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
             mOutputStream = new FileOutputStream(fd);
 
             receiveAOAMsg();
-            sendAOAMsg("msg from phone.");
         }
     }
 
@@ -192,32 +189,25 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (!isTerminated) {
+                int length = 0;
+                byte[] buffer = new byte[16384];
+                while (length >= 0) {
                     try {
-                        byte[] data = new byte[1024];
-                        int length = mInputStream.read(data);
-                        String receiveText = new String(data);
-
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    Toast.makeText(PhoneActivity.this, receiveText, Toast.LENGTH_SHORT).show();
-//                                }
-//                            });
+                        length = mInputStream.read(buffer);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                    if (length > 0) {
+                        String receiveText = new String(buffer, 0, length);
 
                         if (receiveText.startsWith("car:")) {
                             LogUtil.d(TAG, "receiveText=" + receiveText);
 
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    String str = binding.aoaMsgTv.getText().toString() + "\n";
-                                    binding.aoaMsgTv.setText(str + "车机：" + receiveText);
-                                }
-                            });
+                            Message m = Message.obtain(mHandler, MESSAGE_LOG);
+                            m.obj = receiveText;
+                            mHandler.sendMessage(m);
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
                 }
             }
@@ -235,14 +225,6 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            String str = binding.aoaMsgTv.getText().toString() + "\n";
-//                            binding.aoaMsgTv.setText(str + "手机：" + msg);
-//                        }
-//                    });
                 }
             }).start();
         }
@@ -275,8 +257,18 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         super.onDestroy();
         LogUtil.d(TAG);
 
-        isTerminated = true;
         unregisterReceiver();
         closeAccessory();
     }
+
+    Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MESSAGE_LOG:
+                    binding.aoaMsgTv.setText(binding.aoaMsgTv.getText() + "\n" + (String) msg.obj);
+                    break;
+            }
+        }
+    };
 }

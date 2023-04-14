@@ -110,16 +110,16 @@ public class CarLauncherActivity extends BaseActivity implements View.OnClickLis
     @Override
     public void onClick(View v) {
         if (v == binding.voiceIv) {
-            toast("语音助手");
+            dialogToast("语音助手");
         }
         if (v == binding.navigationIv) {
-            toast("导航");
+            dialogToast("导航");
         }
         if (v == binding.tiktokIv) {
-            toast("在线音乐");
+            dialogToast("在线音乐");
         }
         if (v == binding.phoneIv) {
-            toast("通话");
+            dialogToast("通话");
         }
         if (v == binding.homeIv) {
             if (binding.homeVp.getCurrentItem() == 0) {

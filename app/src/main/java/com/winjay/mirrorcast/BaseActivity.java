@@ -5,7 +5,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -14,10 +13,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.winjay.mirrorcast.aoa.VehicleAOAActivity;
 import com.winjay.mirrorcast.util.HandlerManager;
 import com.winjay.mirrorcast.util.LogUtil;
 import com.winjay.mirrorcast.wifidirect.LoadingDialog;
-import com.winjay.mirrorcast.wifidirect.WIFIDirectActivity;
 
 import java.util.List;
 
@@ -120,7 +119,7 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
     }
 
-    protected void toast(String text) {
+    protected void dialogToast(String text) {
         if (!TextUtils.isEmpty(text)) {
 //            Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
 
@@ -132,6 +131,15 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
                 }
             }, 1000);
         }
+    }
+
+    protected void toast(String text) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BaseActivity.this, text, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     protected void setTitle(String title) {

@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
@@ -13,9 +12,11 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -34,6 +35,8 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 
     private ActivityVehicleAoaBinding binding;
 
+    private static final int MESSAGE_LOG = 1;
+
     private static final int STORAGE_INTERFACE_COUNT = 1;
     private static final int STORAGE_INTERFACE_ID = 0;
     private static final int STORAGE_INTERFACE_CLASS = 8;
@@ -50,9 +53,9 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     private static final String AOA_MANUFACTURER = "MobileDriveTech";
     private static final String AOA_MODEL_NAME = "SuperLink";
     private static final String AOA_DESCRIPTION = "MobileDriveTech SuperLink";
-    private static final String AOA_VERSION = "1.0.0";
+    private static final String AOA_VERSION = "1.0";
     private static final String AOA_URI = "http://www.MobileDriveTech.com.cn/";
-    private static final String AOA_SERIAL_NUMBER = "123456.";
+    private static final String AOA_SERIAL_NUMBER = "0123456789";
     private PendingIntent mPermissionIntent;
     private static final String ACTION_USB_PERMISSION = "com.winjay.mirrorcast.USB_PERMISSION";
     private static final int VID_ACCESSORY = 0x18D1;
@@ -60,16 +63,8 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     private static final int PID_ACCESSORY_AUDIO_ADB_BULK = 0x2D05;
     private UsbInterface usbInterface;
     private UsbDeviceConnection usbDeviceConnection;
-    private boolean isTerminated = false;
     private UsbEndpoint inEndpoint;
     private UsbEndpoint outEndpoint;
-
-//    @Override
-//    protected void onNewIntent(Intent intent) {
-//        super.onNewIntent(intent);
-//        LogUtil.d(TAG, "action=" + intent.getAction());
-//        setIntent(intent);
-//    }
 
     @Override
     protected View viewBinding() {
@@ -101,7 +96,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     public void onClick(View v) {
         if (v == binding.aoaSendBtn) {
             if (TextUtils.isEmpty(binding.aoaEd.getText().toString())) {
-                toast("内容不能为空！");
+                dialogToast("内容不能为空！");
                 return;
             }
 
@@ -191,7 +186,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                                 }
                             }
                         }
-                        requestPendingPermission();
+//                        requestPendingPermission();
                     }
                     break;
                 case UsbManager.ACTION_USB_DEVICE_ATTACHED:
@@ -230,34 +225,27 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
         LogUtil.d(TAG);
         usbInterface = device.getInterface(0);
         usbDeviceConnection = mUsbManager.openDevice(device);
-        if (usbDeviceConnection == null) {
-            LogUtil.w(TAG, "usbDeviceConnection == null");
-            return false;
-        }
-        usbDeviceConnection.claimInterface(usbInterface, true);
+        boolean result = usbDeviceConnection.claimInterface(usbInterface, true);
+        LogUtil.d(TAG, "claimInterface result=" + result);
         findEndpoint();
+
         if (isAccessory(device)) {
-            toast2("配件打开成功1！");
+            toast("配件连接成功！");
+
             receiveAOAMsg();
-//            sendAOAMsg("msg from car.");
             return true;
         }
 
         if (getProtocolVersion()) {
             if (sendIdentityStrings()) {
                 if (startAccessoryMode()) {
-                    toast2("配件打开成功2！");
+                    toast("切换配件模式成功！");
                     usbDeviceConnection.releaseInterface(usbInterface);
                     usbDeviceConnection.close();
                     usbDeviceConnection = null;
-                    checkDevice();
                 }
-
-//                receiveAOAMsg();
-//                sendAOAMsg("msg from car.");
             }
         }
-        LogUtil.w(TAG, "open filed!");
         return false;
     }
 
@@ -274,83 +262,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
         }
     }
 
-    private void toast2(String msg) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(VehicleAOAActivity.this, msg, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void receiveAOAMsg() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (!isTerminated) {
-                    UsbEndpoint epIn = usbInterface.getEndpoint(0);
-                    // 接收数据
-                    byte[] buffer = new byte[1024];
-                    int bytesRead = usbDeviceConnection.bulkTransfer(inEndpoint, buffer, buffer.length, 0);
-                    if (bytesRead > 0) {
-                        String response = new String(buffer, 0, bytesRead);
-
-                        if (response.startsWith("phone:")) {
-                            LogUtil.d(TAG, "host received=" + response);
-
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    String str = binding.aoaMsgTv.getText().toString() + "\n";
-                                    binding.aoaMsgTv.setText(str + "手机：" + response);
-                                }
-                            });
-                        }
-                    }
-                }
-            }
-        }).start();
-    }
-
-    private void sendAOAMsg(String msg) {
-        LogUtil.d(TAG, "msg=" + msg);
-        if (usbDeviceConnection != null && usbInterface != null) {
-//            usbDeviceConnection.claimInterface(usbInterface, true);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-//                    UsbEndpoint epOut = usbInterface.getEndpoint(1);
-//                    findEndpoint();
-                    // 发送数据
-                    byte[] data = ("car:" + msg).getBytes();
-                    int result = usbDeviceConnection.bulkTransfer(outEndpoint, data, data.length, 0);
-                    LogUtil.d(TAG, "host send result=" + result);
-
-                    toast2("result=" + result);
-
-//                    if (result > 0) {
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                String str = binding.aoaMsgTv.getText().toString() + "\n";
-//                                binding.aoaMsgTv.setText(str + "车机：" + msg);
-//                            }
-//                        });
-//                    } else {
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                toast("发送失败！");
-//                            }
-//                        });
-//                    }
-                }
-            }).start();
-        }
-    }
-
     private void closeAccessory() {
-        isTerminated = true;
         if (usbDeviceConnection != null) {
             LogUtil.d(TAG);
             usbDeviceConnection.releaseInterface(usbInterface);
@@ -364,45 +276,6 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                 && usbDevice.getProductId() >= PID_ACCESSORY_ONLY
                 && usbDevice.getProductId() <= PID_ACCESSORY_AUDIO_ADB_BULK;
     }
-
-//    public boolean changeToAccessoryMode(UsbDevice usbDevice) {
-//        mUsbDeviceConnection = mUsbManager.openDevice(usbDevice);
-//
-//        LogUtil.d(TAG);
-//        if (usbDevice == null) {
-//            return false;
-//        }
-//        if (!getProtocolVersion()) {
-//            LogUtil.w(TAG, "Change Accessory Mode getProtocolVersion Fail");
-//            return false;
-//        }
-//        if (!sendIdentityStrings()) {
-//            LogUtil.w(TAG, "Change Accessory Mode sendIdentityStrings Fail");
-//            return false;
-//        }
-//        if (!startAccessoryMode()) {
-//            LogUtil.w(TAG, "Change Accessory Mode startAccessoryMode Fail");
-//            return false;
-//        }
-//        LogUtil.d(TAG, "Change Accessory Mode Success");
-//        return true;
-//    }
-
-//    private boolean getProtocolVersion() {
-//        byte[] buffer = new byte[2];
-//        if (controlTransferIn(AOA_GET_PROTOCOL, 0, 0, buffer) < 0) {
-//            LogUtil.w(TAG, "get protocol version fail");
-//            return false;
-//        }
-//
-//        int version = buffer[1] << 8 | buffer[0];
-//        if (version < 1 || version > 2) {
-//            LogUtil.e(TAG, "usb device not capable of AOA 1.0 or 2.0, version = " + version);
-//            return false;
-//        }
-//        LogUtil.d(TAG, "usb device AOA version is " + version);
-//        return true;
-//    }
 
     private boolean getProtocolVersion() {
         byte[] buffer = new byte[2];
@@ -434,7 +307,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
             LogUtil.w(TAG, "send identity AOA_SERIAL_NUMBER fail");
             return false;
         }
-        LogUtil.d(TAG, "send indentity string success");
+        LogUtil.d(TAG, "send identity string success");
         return true;
     }
 
@@ -463,6 +336,46 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                 value, index, buffer, buffer == null ? 0 : buffer.length, 0);
     }
 
+    private void receiveAOAMsg() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int length = 0;
+                byte[] buffer = new byte[16384];
+                while (length >= 0) {
+                    length = usbDeviceConnection.bulkTransfer(inEndpoint, buffer, buffer.length, 0);
+
+                    if (length > 0) {
+                        String response = new String(buffer, 0, length);
+
+                        if (response.startsWith("phone:")) {
+                            LogUtil.d(TAG, "host received=" + response);
+
+                            Message m = Message.obtain(mHandler, MESSAGE_LOG);
+                            m.obj = response;
+                            mHandler.sendMessage(m);
+                        }
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private void sendAOAMsg(String msg) {
+        LogUtil.d(TAG, "msg=" + msg);
+        if (usbDeviceConnection != null && usbInterface != null) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // 发送数据
+                    byte[] data = ("car:" + msg).getBytes();
+                    int result = usbDeviceConnection.bulkTransfer(outEndpoint, data, data.length, 0);
+                    LogUtil.d(TAG, "host send result=" + result);
+                }
+            }).start();
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -471,4 +384,16 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
         unregisterUsbReceiver();
         closeAccessory();
     }
+
+
+    Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MESSAGE_LOG:
+                    binding.aoaMsgTv.setText(binding.aoaMsgTv.getText() + "\n" + (String) msg.obj);
+                    break;
+            }
+        }
+    };
 }

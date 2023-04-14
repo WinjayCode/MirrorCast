@@ -112,7 +112,7 @@ public class CarShowActivity extends BaseActivity {
 
     private void connectAppMirrorSocket() {
         if (TextUtils.isEmpty(mServerIp)) {
-            toast("手机连接异常！");
+            dialogToast("手机连接异常！");
             finish();
             return;
         }
@@ -388,7 +388,7 @@ public class CarShowActivity extends BaseActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            toast("投屏启动失败!");
+                            dialogToast("投屏启动失败!");
                         }
                     });
                 }

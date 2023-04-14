@@ -104,7 +104,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
         // 连接投屏服务
         if (v == binding.connectMirrorCastServer) {
             if (TextUtils.isEmpty(AppApplication.destDeviceIp) && TextUtils.isEmpty(binding.ipEd.getText().toString())) {
-                toast("请输入需要投屏的设备IP地址！");
+                dialogToast("请输入需要投屏的设备IP地址！");
                 return;
             }
 
@@ -121,7 +121,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
         // 接收投屏
         if (v == binding.btnStartReceive) {
             if (!mMirrorCastServerConnected) {
-                toast("请先连接投屏服务！");
+                dialogToast("请先连接投屏服务！");
                 return;
             }
 
@@ -139,7 +139,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
         // car launcher
         if (v == binding.btnCarHome) {
             if (!mMirrorCastServerConnected) {
-                toast("请先连接投屏服务！");
+                dialogToast("请先连接投屏服务！");
                 return;
             }
 
@@ -227,7 +227,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 
     private void connectMirrorCastServer(String serverIp) {
         if (mMirrorCastServerConnected) {
-            toast("投屏服务已连接！");
+            dialogToast("投屏服务已连接！");
             return;
         }
 
@@ -256,7 +256,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                                         @Override
                                         public void run() {
                                             dismissLoadingDialog();
-                                            toast("投屏服务连接成功！");
+                                            dialogToast("投屏服务连接成功！");
                                         }
                                     });
                                 } else {
@@ -266,7 +266,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                                         @Override
                                         public void run() {
                                             dismissLoadingDialog();
-                                            toast("投屏服务连接失败！");
+                                            dialogToast("投屏服务连接失败！");
                                         }
                                     });
                                 }
@@ -279,7 +279,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                             @Override
                             public void run() {
                                 dismissLoadingDialog();
-                                toast("投屏服务连接成功！");
+                                dialogToast("投屏服务连接成功！");
                             }
                         });
                     }

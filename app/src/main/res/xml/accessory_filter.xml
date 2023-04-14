@@ -4,5 +4,5 @@
     <usb-accessory
         manufacturer="MobileDriveTech"
         model="SuperLink"
-        version="1.0.0" />
+        version="1.0" />
 </resources>
