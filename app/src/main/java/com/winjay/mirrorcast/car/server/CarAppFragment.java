@@ -17,7 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.winjay.mirrorcast.AppApplication;
-import com.winjay.mirrorcast.BaseFragment;
+import com.winjay.mirrorcast.common.BaseFragment;
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.app_mirror.AppSocketClientManager;
 import com.winjay.mirrorcast.databinding.FragmentCarAppBinding;

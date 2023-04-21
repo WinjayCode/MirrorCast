@@ -18,36 +18,30 @@ import com.winjay.mirrorcast.util.NetUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.NoRouteToHostException;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Enumeration;
 
 
-public class SendCommands {
-    private static final String TAG = SendCommands.class.getSimpleName();
+public class ADBCommands {
+    private static final String TAG = ADBCommands.class.getSimpleName();
 
-    private static SendCommands instance;
+    private static ADBCommands instance;
 
     private Thread thread = null;
     private Context mContext;
     private int status;
 
-    private SendCommands(Context context) {
+    private ADBCommands(Context context) {
         mContext = context;
     }
 
-    public static SendCommands getInstance(Context context) {
+    public static ADBCommands getInstance(Context context) {
         if (instance == null) {
-            instance = new SendCommands(context);
+            instance = new ADBCommands(context);
         }
         return instance;
     }

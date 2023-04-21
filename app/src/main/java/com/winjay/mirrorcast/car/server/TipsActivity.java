@@ -6,7 +6,7 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import com.winjay.mirrorcast.BaseActivity;
+import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityTipsBinding;
 import com.winjay.mirrorcast.util.LogUtil;
 

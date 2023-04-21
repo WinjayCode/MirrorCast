@@ -20,6 +20,7 @@ import com.winjay.mirrorcast.aoa.VehicleAOAActivity;
 import com.winjay.mirrorcast.app_mirror.AppSocketServer;
 import com.winjay.mirrorcast.app_mirror.AppSocketServerManager;
 import com.winjay.mirrorcast.car.client.CarShowActivity;
+import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityVehicleBinding;
 import com.winjay.mirrorcast.decode.ScreenDecoderActivity;
 import com.winjay.mirrorcast.server.ScreenService;
@@ -249,7 +250,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                                     }
                                 });
 
-                                if (SendCommands.getInstance(VehicleActivity.this).sendServerJar(serverIp) == 0) {
+                                if (ADBCommands.getInstance(VehicleActivity.this).sendServerJar(serverIp) == 0) {
                                     mMirrorCastServerConnected = true;
 
                                     runOnUiThread(new Runnable() {

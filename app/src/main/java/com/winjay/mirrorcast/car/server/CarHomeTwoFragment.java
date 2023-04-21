@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import com.winjay.mirrorcast.BaseFragment;
+import com.winjay.mirrorcast.common.BaseFragment;
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.R;
 import com.winjay.mirrorcast.app_mirror.AppSocketClientManager;

@@ -12,7 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.winjay.mirrorcast.BaseActivity;
+import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.R;
 import com.winjay.mirrorcast.databinding.ActivityCarHomeBinding;
 import com.winjay.mirrorcast.util.LogUtil;

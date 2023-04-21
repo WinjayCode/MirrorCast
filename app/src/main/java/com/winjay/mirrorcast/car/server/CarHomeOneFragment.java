@@ -7,9 +7,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.winjay.mirrorcast.BaseFragment;
+import com.winjay.mirrorcast.common.BaseFragment;
 import com.winjay.mirrorcast.databinding.FragmentCarHomeOneBinding;
-import com.winjay.mirrorcast.util.LogUtil;
 
 public class CarHomeOneFragment extends BaseFragment<FragmentCarHomeOneBinding> {
     private static final String TAG = CarHomeOneFragment.class.getSimpleName();

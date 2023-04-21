@@ -11,9 +11,9 @@ import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.winjay.mirrorcast.BaseActivity;
+import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.Constants;
-import com.winjay.mirrorcast.SendCommands;
+import com.winjay.mirrorcast.ADBCommands;
 import com.winjay.mirrorcast.app_mirror.AppSocketServer;
 import com.winjay.mirrorcast.app_mirror.AppSocketServerManager;
 import com.winjay.mirrorcast.car.server.CarLauncherActivity;
@@ -381,7 +381,7 @@ public class CarShowActivity extends BaseActivity {
             @Override
             public void run() {
                 LogUtil.d(TAG, "serverPort=" + serverPort + ",maxSize=" + maxSize + ",displayId=" + displayId);
-                if (SendCommands.getInstance(CarShowActivity.this).startMirrorCast(mServerIp, serverPort, 0, maxSize, displayId)) {
+                if (ADBCommands.getInstance(CarShowActivity.this).startMirrorCast(mServerIp, serverPort, 0, maxSize, displayId)) {
                     LogUtil.d(TAG, "scrcpy server start success.");
                 } else {
                     LogUtil.e(TAG, "scrcpy server start failure!");

@@ -26,7 +26,7 @@ import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.winjay.mirrorcast.AppApplication;
-import com.winjay.mirrorcast.BaseActivity;
+import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityWifiDirectBinding;
 import com.winjay.mirrorcast.util.LogUtil;
 import com.winjay.mirrorcast.util.NetUtil;

@@ -1,4 +1,4 @@
-package com.winjay.mirrorcast;
+package com.winjay.mirrorcast.common;
 
 import android.content.Context;
 import android.os.Bundle;

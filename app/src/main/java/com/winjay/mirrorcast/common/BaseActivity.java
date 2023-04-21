@@ -1,4 +1,4 @@
-package com.winjay.mirrorcast;
+package com.winjay.mirrorcast.common;
 
 import android.content.Intent;
 import android.os.Build;
@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.winjay.mirrorcast.aoa.VehicleAOAActivity;
 import com.winjay.mirrorcast.util.HandlerManager;
 import com.winjay.mirrorcast.util.LogUtil;
 import com.winjay.mirrorcast.wifidirect.LoadingDialog;

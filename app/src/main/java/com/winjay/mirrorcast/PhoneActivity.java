@@ -6,6 +6,7 @@ import android.view.View;
 import androidx.annotation.Nullable;
 
 import com.winjay.mirrorcast.aoa.PhoneAOAActivity;
+import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityPhoneBinding;
 import com.winjay.mirrorcast.wifidirect.ServerThread;
 import com.winjay.mirrorcast.wifidirect.WIFIDirectActivity;
