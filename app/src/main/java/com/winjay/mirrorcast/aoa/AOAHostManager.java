@@ -13,6 +13,7 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.text.TextUtils;
 
+import com.winjay.mirrorcast.ADBCommands;
 import com.winjay.mirrorcast.util.LogUtil;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -156,8 +157,6 @@ public class AOAHostManager {
                         if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                             UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                             if (device != null) {
-                                OTGADBCommands.getInstance(context).asyncRefreshAdbConnection(device);
-
                                 if (openAccessory(device)) {
                                     // 成功打开usb accessory，清空权限列表，返回设备
                                     pendingPermissionDevices.clear();
@@ -212,6 +211,8 @@ public class AOAHostManager {
 //            toast("配件连接成功！");
 
             receiveAOAMsg();
+
+            sendServerJar(device);
             return true;
         }
 
@@ -226,6 +227,41 @@ public class AOAHostManager {
             }
         }
         return false;
+    }
+
+    private void sendServerJar(UsbDevice device) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (mAOAHostMessageListener != null) {
+                    byte[] resultByte = "phone:开始推送scrcpy-server.jar".getBytes();
+                    mAOAHostMessageListener.onReceivedData(resultByte, resultByte.length);
+                }
+                UsbInterface adbInterface = findAdbInterface(device);
+                if (usbDeviceConnection.claimInterface(adbInterface, false)) {
+                    boolean sendResult = ADBCommands.getInstance(context).sendServerJar(usbDeviceConnection, adbInterface);
+                    LogUtil.d(TAG, "sendResult=" + sendResult);
+                    if (mAOAHostMessageListener != null) {
+                        String msg = sendResult ? "phone:scrcpy-server.jar推送完成！" : "phone:scrcpy-server.jar推送失败！";
+                        byte[] resultByte = msg.getBytes();
+                        mAOAHostMessageListener.onReceivedData(resultByte, resultByte.length);
+                    }
+                }
+            }
+        }).start();
+    }
+
+    // searches for an adb interface on the given USB device
+    private UsbInterface findAdbInterface(UsbDevice device) {
+        int count = device.getInterfaceCount();
+        for (int i = 0; i < count; i++) {
+            UsbInterface intf = device.getInterface(i);
+            if (intf.getInterfaceClass() == 255 && intf.getInterfaceSubclass() == 66 &&
+                    intf.getInterfaceProtocol() == 1) {
+                return intf;
+            }
+        }
+        return null;
     }
 
     private void findEndpoint() {
@@ -330,28 +366,6 @@ public class AOAHostManager {
                         }
                     }
                 }
-            }
-        }).start();
-    }
-
-    public UsbDeviceConnection getUsbDeviceConnection() {
-        return usbDeviceConnection;
-    }
-
-    public UsbEndpoint getInEndpoint() {
-        return inEndpoint;
-    }
-
-    public void write(byte[] data) {
-        if (data.length == 0) {
-            return;
-        }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int result = usbDeviceConnection.bulkTransfer(outEndpoint, data, data.length, 0);
-                LogUtil.d(TAG, "host send result=" + result);
             }
         }).start();
     }

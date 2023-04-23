@@ -10,6 +10,19 @@ import java.io.InputStream;
 
 /**
  * Created by xudong on 2/25/14.
+ *
+ *  adb push协议：
+ *   -------------------------------
+ *  |          Command ID           |   4 bytes
+ *   -------------------------------
+ *  |            Package            | 256 bytes
+ *   -------------------------------
+ *  |        Total Payload Size     |   4 bytes
+ *   -------------------------------
+ *  |          Chunk Payload        |
+ *   |             data              | 实际要传输的数据块。这些数据块将被分成固定大小的块（默认为 64KB）进行传输。
+ *   -------------------------------
+ *          (Payload Size bytes)
  */
 public class Push {
     private static final String TAG = Push.class.getSimpleName();

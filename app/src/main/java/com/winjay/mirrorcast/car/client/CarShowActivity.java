@@ -381,7 +381,7 @@ public class CarShowActivity extends BaseActivity {
             @Override
             public void run() {
                 LogUtil.d(TAG, "serverPort=" + serverPort + ",maxSize=" + maxSize + ",displayId=" + displayId);
-                if (ADBCommands.getInstance(CarShowActivity.this).startMirrorCast(mServerIp, serverPort, 0, maxSize, displayId)) {
+                if (ADBCommands.getInstance(CarShowActivity.this).startMirrorCast(serverPort, 0, maxSize, displayId)) {
                     LogUtil.d(TAG, "scrcpy server start success.");
                 } else {
                     LogUtil.e(TAG, "scrcpy server start failure!");

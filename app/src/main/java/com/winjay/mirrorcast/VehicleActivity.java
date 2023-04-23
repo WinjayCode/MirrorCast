@@ -250,7 +250,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                                     }
                                 });
 
-                                if (ADBCommands.getInstance(VehicleActivity.this).sendServerJar(serverIp) == 0) {
+                                if (ADBCommands.getInstance(VehicleActivity.this).sendServerJar(serverIp)) {
                                     mMirrorCastServerConnected = true;
 
                                     runOnUiThread(new Runnable() {
