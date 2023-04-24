@@ -26,4 +26,9 @@
         android:id="@+id/aoa_msg_tv"
         style="@style/BtnStyle"
         android:layout_height="match_parent" />
+
+    <SurfaceView
+        android:id="@+id/phone_main_screen_sv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </LinearLayout>

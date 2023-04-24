@@ -240,11 +240,11 @@ public class ADBCommands {
         }
     }
 
-    public boolean startMirrorCast(int serverPort, int bitrate, int maxSize, String displayId) {
+    public boolean startMirrorCast(String serverIp, int serverPort, int bitrate, int maxSize, String displayId) {
         LogUtil.d(TAG);
         StringBuilder command = new StringBuilder();
         command.append(" CLASSPATH=/data/local/tmp/scrcpy-server.jar app_process / com.winjay.scrcpy.Server ");
-        command.append("1.24" + " server_port=" + serverPort + " local_ip=" + NetUtil.wifiIpAddress() + " max_size=" + maxSize + " max_fps=30" + (TextUtils.isEmpty(displayId) ? "" : " display_id=" + displayId)); // + " display_id=10" + " bit_rate=" + bitrate
+        command.append("1.24" + " server_ip=" + serverIp + " server_port=" + serverPort + " max_size=" + maxSize + " max_fps=30" + (TextUtils.isEmpty(displayId) ? "" : " display_id=" + displayId)); // + " display_id=10" + " bit_rate=" + bitrate
         LogUtil.d(TAG, "command=" + command);
 
         try {

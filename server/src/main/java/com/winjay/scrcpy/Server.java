@@ -28,15 +28,15 @@ public final class Server {
         boolean control = options.getControl();
         boolean sendDummyByte = options.getSendDummyByte();
 
-        String localIp = options.getLocalIp();
-        Ln.i("localIp=" + localIp);
+        String serverIp = options.getServerIp();
+        Ln.i("serverIp=" + serverIp);
         String serverPort = options.getServerPort();
         Ln.i("serverPort=" + serverPort);
         try {
             DroidScreenEncoder screenEncoder = new DroidScreenEncoder(options.getSendFrameMeta(), options.getBitRate(), options.getMaxFps(), codecOptions,
                     options.getEncoderName(), options.getDownsizeOnError());
 
-            DroidSocketClientManager.getInstance().connect(localIp, serverPort, device, new DroidSocketClient.OnSocketClientListener() {
+            DroidSocketClientManager.getInstance().connect(serverIp, serverPort, device, new DroidSocketClient.OnSocketClientListener() {
                 @Override
                 public void onClose() {
                     screenEncoder.stopStreamScreen();
@@ -322,10 +322,10 @@ public final class Server {
                         options.setSendDummyByte(false);
                     }
                     break;
-                case "local_ip":
+                case "server_ip":
                     if (!value.isEmpty()) {
-                        Ln.i("local_ip=" + value);
-                        options.setLocalIp(value);
+                        Ln.i("server_ip=" + value);
+                        options.setServerIp(value);
                     }
                     break;
                 case "server_port":

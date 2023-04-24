@@ -34,7 +34,7 @@ public class AOAAccessoryManager {
     private FileInputStream mInputStream;
     private FileOutputStream mOutputStream;
 
-    private AOAAccessoryMessageListener mAOAAccessoryMessageListener;
+    private AOAAccessoryListener mAOAAccessoryListener;
 
     private AOAAccessoryManager() {
     }
@@ -157,11 +157,17 @@ public class AOAAccessoryManager {
             mInputStream = new FileInputStream(fd);
             mOutputStream = new FileOutputStream(fd);
 
-            receiveAOAMsg();
+            if (mAOAAccessoryListener != null) {
+                LogUtil.d(TAG, "111");
+                mAOAAccessoryListener.connectSucceed();
+            }
+
+            receiveAOAMessage();
         }
     }
 
-    private void receiveAOAMsg() {
+    private void receiveAOAMessage() {
+        LogUtil.d(TAG);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -175,8 +181,8 @@ public class AOAAccessoryManager {
                         break;
                     }
                     if (length > 0) {
-                        if (mAOAAccessoryMessageListener != null) {
-                            mAOAAccessoryMessageListener.onReceivedData(buffer, length);
+                        if (mAOAAccessoryListener != null) {
+                            mAOAAccessoryListener.onReceivedData(buffer, length);
                         }
                     }
                 }
@@ -184,14 +190,14 @@ public class AOAAccessoryManager {
         }).start();
     }
 
-    public void sendAOAMsg(String msg) {
+    public void sendAOAMessage(String msg) {
         if (mOutputStream != null) {
+            LogUtil.d(TAG, "msg=" + msg);
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    LogUtil.d(TAG, "phone send msg.");
                     try {
-                        mOutputStream.write(("phone:" + msg).getBytes());
+                        mOutputStream.write(msg.getBytes());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -227,11 +233,13 @@ public class AOAAccessoryManager {
         closeAccessory();
     }
 
-    public interface AOAAccessoryMessageListener {
+    public interface AOAAccessoryListener {
+        void connectSucceed();
+
         void onReceivedData(byte[] data, int length);
     }
 
-    public void setAOAAccessoryMessageListener(AOAAccessoryMessageListener aOAAccessoryMessageListener) {
-        mAOAAccessoryMessageListener = aOAAccessoryMessageListener;
+    public void setAOAAccessoryListener(AOAAccessoryListener aOAAccessoryListener) {
+        mAOAAccessoryListener = aOAAccessoryListener;
     }
 }

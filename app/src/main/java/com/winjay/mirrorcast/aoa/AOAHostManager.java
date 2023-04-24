@@ -13,7 +13,6 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.text.TextUtils;
 
-import com.winjay.mirrorcast.ADBCommands;
 import com.winjay.mirrorcast.util.LogUtil;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -56,7 +55,7 @@ public class AOAHostManager {
     private UsbEndpoint inEndpoint;
     private UsbEndpoint outEndpoint;
 
-    private AOAHostMessageListener mAOAHostMessageListener;
+    private AOAHostListener mAOAHostListener;
 
     private AOAHostManager() {
     }
@@ -210,9 +209,11 @@ public class AOAHostManager {
         if (isAccessory(device)) {
 //            toast("配件连接成功！");
 
-            receiveAOAMsg();
+            if (mAOAHostListener != null) {
+                mAOAHostListener.connectSucceed(device, usbDeviceConnection);
+            }
 
-            sendServerJar(device);
+            receiveAOAMessage();
             return true;
         }
 
@@ -227,41 +228,6 @@ public class AOAHostManager {
             }
         }
         return false;
-    }
-
-    private void sendServerJar(UsbDevice device) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (mAOAHostMessageListener != null) {
-                    byte[] resultByte = "phone:开始推送scrcpy-server.jar".getBytes();
-                    mAOAHostMessageListener.onReceivedData(resultByte, resultByte.length);
-                }
-                UsbInterface adbInterface = findAdbInterface(device);
-                if (usbDeviceConnection.claimInterface(adbInterface, false)) {
-                    boolean sendResult = ADBCommands.getInstance(context).sendServerJar(usbDeviceConnection, adbInterface);
-                    LogUtil.d(TAG, "sendResult=" + sendResult);
-                    if (mAOAHostMessageListener != null) {
-                        String msg = sendResult ? "phone:scrcpy-server.jar推送完成！" : "phone:scrcpy-server.jar推送失败！";
-                        byte[] resultByte = msg.getBytes();
-                        mAOAHostMessageListener.onReceivedData(resultByte, resultByte.length);
-                    }
-                }
-            }
-        }).start();
-    }
-
-    // searches for an adb interface on the given USB device
-    private UsbInterface findAdbInterface(UsbDevice device) {
-        int count = device.getInterfaceCount();
-        for (int i = 0; i < count; i++) {
-            UsbInterface intf = device.getInterface(i);
-            if (intf.getInterfaceClass() == 255 && intf.getInterfaceSubclass() == 66 &&
-                    intf.getInterfaceProtocol() == 1) {
-                return intf;
-            }
-        }
-        return null;
     }
 
     private void findEndpoint() {
@@ -351,7 +317,8 @@ public class AOAHostManager {
                 value, index, buffer, buffer == null ? 0 : buffer.length, 0);
     }
 
-    private void receiveAOAMsg() {
+    private void receiveAOAMessage() {
+        LogUtil.d(TAG);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -361,8 +328,8 @@ public class AOAHostManager {
                     length = usbDeviceConnection.bulkTransfer(inEndpoint, buffer, buffer.length, 0);
 
                     if (length > 0) {
-                        if (mAOAHostMessageListener != null) {
-                            mAOAHostMessageListener.onReceivedData(buffer, length);
+                        if (mAOAHostListener != null) {
+                            mAOAHostListener.onReceivedData(buffer, length);
                         }
                     }
                 }
@@ -370,14 +337,13 @@ public class AOAHostManager {
         }).start();
     }
 
-    public void sendAOAMsg(String msg) {
+    public void sendAOAMessage(String msg) {
         LogUtil.d(TAG, "msg=" + msg);
         if (usbDeviceConnection != null && usbInterface != null) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    // 发送数据
-                    byte[] data = ("car:" + msg).getBytes();
+                    byte[] data = msg.getBytes();
                     int result = usbDeviceConnection.bulkTransfer(outEndpoint, data, data.length, 0);
                     LogUtil.d(TAG, "host send result=" + result);
                 }
@@ -390,11 +356,13 @@ public class AOAHostManager {
         closeAccessory();
     }
 
-    public interface AOAHostMessageListener {
+    public interface AOAHostListener {
+        void connectSucceed(UsbDevice device, UsbDeviceConnection usbDeviceConnection);
+
         void onReceivedData(byte[] data, int length);
     }
 
-    public void setAOAHostMessageListener(AOAHostMessageListener aOAHostMessageListener) {
-        mAOAHostMessageListener = aOAHostMessageListener;
+    public void setAOAHostListener(AOAHostListener aOAHostListener) {
+        mAOAHostListener = aOAHostListener;
     }
 }

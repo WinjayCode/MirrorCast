@@ -23,6 +23,7 @@ import com.winjay.mirrorcast.decode.ScreenDecoderSocketServerManager;
 import com.winjay.mirrorcast.util.ActivityListUtil;
 import com.winjay.mirrorcast.util.DisplayUtil;
 import com.winjay.mirrorcast.util.LogUtil;
+import com.winjay.mirrorcast.util.NetUtil;
 
 /**
  * @author F2848777
@@ -381,7 +382,7 @@ public class CarShowActivity extends BaseActivity {
             @Override
             public void run() {
                 LogUtil.d(TAG, "serverPort=" + serverPort + ",maxSize=" + maxSize + ",displayId=" + displayId);
-                if (ADBCommands.getInstance(CarShowActivity.this).startMirrorCast(serverPort, 0, maxSize, displayId)) {
+                if (ADBCommands.getInstance(CarShowActivity.this).startMirrorCast(NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
                     LogUtil.d(TAG, "scrcpy server start success.");
                 } else {
                     LogUtil.e(TAG, "scrcpy server start failure!");
