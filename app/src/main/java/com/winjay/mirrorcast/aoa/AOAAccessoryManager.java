@@ -114,9 +114,8 @@ public class AOAAccessoryManager {
                     LogUtil.d(TAG, "USB_ACCESSORY_DETACHED " + detachedAccessory);
                     if (detachedAccessory != null) {
                         mAccessory = detachedAccessory;
+                        closeAccessory();
                     }
-
-//                    finish();
                     break;
             }
         }
@@ -128,7 +127,7 @@ public class AOAAccessoryManager {
         UsbAccessory[] accessories = mUsbManager.getAccessoryList();
 
         if (accessories == null) {
-            LogUtil.d(TAG, "accessories list is null");
+            LogUtil.w(TAG, "accessories list is null!");
             return;
         }
 
@@ -136,16 +135,15 @@ public class AOAAccessoryManager {
 
         UsbAccessory accessory = accessories[0];
         if (accessory != null) {
-            LogUtil.d(TAG, "accessories not null");
             if (mUsbManager.hasPermission(accessory)) {
                 mAccessory = accessory;
                 openAccessory();
             } else {
-                LogUtil.d(TAG, "accessories null per");
+                LogUtil.d(TAG, "accessories has no permission");
                 mUsbManager.requestPermission(accessory, mPermissionIntent);
             }
         } else {
-            LogUtil.d(TAG, "accessories null");
+            LogUtil.w(TAG, "accessories is null!");
         }
     }
 
@@ -157,12 +155,11 @@ public class AOAAccessoryManager {
             mInputStream = new FileInputStream(fd);
             mOutputStream = new FileOutputStream(fd);
 
+            receiveAOAMessage();
+
             if (mAOAAccessoryListener != null) {
-                LogUtil.d(TAG, "111");
                 mAOAAccessoryListener.connectSucceed();
             }
-
-            receiveAOAMessage();
         }
     }
 

@@ -24,6 +24,7 @@ public class AppSocketServer extends WebSocketServer {
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         LogUtil.d(TAG);
         mWebSocket = conn;
+        LogUtil.d(TAG, "client ip=" + conn.getRemoteSocketAddress().getAddress());
     }
 
     @Override

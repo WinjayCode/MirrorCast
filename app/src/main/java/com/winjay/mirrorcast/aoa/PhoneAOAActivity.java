@@ -44,12 +44,12 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         initView();
 
-        AOAAccessoryManager.getInstance().setAOAAccessoryListener(this);
-        AOAAccessoryManager.getInstance().start(this);
-
         phoneAOASocketServer = new PhoneAOASocketServer(new InetSocketAddress(Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT));
         phoneAOASocketServer.setOnWebSocketServerListener(this);
         phoneAOASocketServer.start();
+
+        AOAAccessoryManager.getInstance().setAOAAccessoryListener(this);
+        AOAAccessoryManager.getInstance().start(this);
     }
 
     private void initView() {

@@ -204,12 +204,6 @@ public class WIFIDirectActivity extends BaseActivity {
         });
     }
 
-    private void openWifi() {
-//        toast("正在打开WIFI");
-        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        wifiManager.setWifiEnabled(true);
-    }
-
     private void initView() {
         mWifiP2pDeviceList = new ArrayList<>();
         deviceAdapter = new DeviceAdapter(mWifiP2pDeviceList);
@@ -228,6 +222,12 @@ public class WIFIDirectActivity extends BaseActivity {
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.setTitle("正在接收文件");
         progressDialog.setMax(100);
+    }
+
+    private void openWifi() {
+//        toast("正在打开WIFI");
+        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(true);
     }
 
     private void initEvent() {
@@ -269,6 +269,7 @@ public class WIFIDirectActivity extends BaseActivity {
         if (config.deviceAddress != null && mWifiP2pDevice != null) {
             config.deviceAddress = mWifiP2pDevice.deviceAddress;
             config.wps.setup = WpsInfo.PBC;
+//            config.groupOwnerIntent = 15; // 指定本机作为组长（没用！！！）
             showLoadingDialog("正在连接 " + mWifiP2pDevice.deviceName);
             wifiP2pManager.connect(channel, config, new WifiP2pManager.ActionListener() {
                 @Override
@@ -339,6 +340,7 @@ public class WIFIDirectActivity extends BaseActivity {
      * 默认自己为GO
      */
     private void createGroup() {
+        LogUtil.d(TAG);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             dialogToast("请先授予位置权限");
             return;
@@ -347,6 +349,7 @@ public class WIFIDirectActivity extends BaseActivity {
             @Override
             public void onSuccess() {
                 LogUtil.d(TAG, "createGroup success!");
+                search();
             }
 
             @Override

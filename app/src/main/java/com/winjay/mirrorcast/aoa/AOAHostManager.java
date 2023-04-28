@@ -191,7 +191,7 @@ public class AOAHostManager {
                     UsbDevice detachedDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                     if (detachedDevice != null && isAccessory(detachedDevice)) {
                         LogUtil.d(TAG, "device had been detached");
-                        closeAccessory();
+                        stop();
                     }
                     break;
             }
@@ -202,13 +202,10 @@ public class AOAHostManager {
         LogUtil.d(TAG);
         usbInterface = device.getInterface(0);
         usbDeviceConnection = mUsbManager.openDevice(device);
-        boolean result = usbDeviceConnection.claimInterface(usbInterface, true);
-        LogUtil.d(TAG, "claimInterface result=" + result);
+        usbDeviceConnection.claimInterface(usbInterface, true);
         findEndpoint();
 
         if (isAccessory(device)) {
-//            toast("配件连接成功！");
-
             if (mAOAHostListener != null) {
                 mAOAHostListener.connectSucceed(device, usbDeviceConnection);
             }
@@ -220,10 +217,7 @@ public class AOAHostManager {
         if (getProtocolVersion()) {
             if (sendIdentityStrings()) {
                 if (startAccessoryMode()) {
-//                    toast("切换配件模式成功！");
-                    usbDeviceConnection.releaseInterface(usbInterface);
-                    usbDeviceConnection.close();
-                    usbDeviceConnection = null;
+                    closeAccessory();
                 }
             }
         }

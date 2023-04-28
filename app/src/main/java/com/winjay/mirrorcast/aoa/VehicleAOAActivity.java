@@ -22,6 +22,12 @@ import com.winjay.mirrorcast.decode.ScreenDecoder;
 import com.winjay.mirrorcast.util.DisplayUtil;
 import com.winjay.mirrorcast.util.LogUtil;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 /**
  * @author F2848777
  * @date 2023-04-10
@@ -36,6 +42,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 
     private UsbDevice usbDevice;
     private UsbDeviceConnection usbDeviceConnection;
+    private UsbInterface usbInterface;
 
     private int[] screenSize = new int[2];
     private int maxSize;
@@ -143,6 +150,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     public void onReceivedData(byte[] data, int length) {
         if (isStartMirrorCast) {
             if (mScreenDecoder != null) {
+                LogUtil.d(TAG, "start decode!");
                 // 解析投屏视频数据
                 mScreenDecoder.decodeData(data);
             }
@@ -205,27 +213,34 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     }
 
     private boolean sendServerJar() {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-        Message m1 = Message.obtain(mHandler, MESSAGE_STR);
-        m1.obj = "开始推送scrcpy-server.jar";
-        mHandler.sendMessage(m1);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executor.submit(() -> {
+            Message m1 = Message.obtain(mHandler, MESSAGE_STR);
+            m1.obj = "开始推送scrcpy-server.jar";
+            mHandler.sendMessage(m1);
 
-        UsbInterface adbInterface = findAdbInterface(usbDevice);
-        if (usbDeviceConnection.claimInterface(adbInterface, false)) {
-            boolean sendResult = ADBCommands.getInstance(VehicleAOAActivity.this).sendServerJar(usbDeviceConnection, adbInterface);
-            LogUtil.d(TAG, "sendResult=" + sendResult);
+            usbInterface = findAdbInterface(usbDevice);
+            if (usbDeviceConnection.claimInterface(usbInterface, false)) {
+                boolean sendResult = ADBCommands.getInstance(VehicleAOAActivity.this).sendServerJar(usbDeviceConnection, usbInterface);
+                LogUtil.d(TAG, "sendResult=" + sendResult);
 
-            Message m2 = Message.obtain(mHandler, MESSAGE_STR);
-            m2.obj = sendResult ? "scrcpy-server.jar推送完成！" : "scrcpy-server.jar推送失败！";
-            mHandler.sendMessage(m2);
+                Message m2 = Message.obtain(mHandler, MESSAGE_STR);
+                m2.obj = sendResult ? "scrcpy-server.jar推送完成！" : "scrcpy-server.jar推送失败！";
+                mHandler.sendMessage(m2);
 
-            return sendResult;
+                return sendResult;
+            }
+            return false;
+        });
+        boolean result = false;
+        try {
+            result = future.get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
         }
-        return false;
-//            }
-//        }).start();
+        executor.shutdown();
+        LogUtil.d(TAG, "result=" + result);
+        return result;
     }
 
     // searches for an adb interface on the given USB device
@@ -245,7 +260,10 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (ADBCommands.getInstance(VehicleAOAActivity.this).startMirrorCast("localhost",
+                if (usbInterface == null) {
+                    usbInterface = findAdbInterface(usbDevice);
+                }
+                if (ADBCommands.getInstance(VehicleAOAActivity.this).startMirrorCast(usbDeviceConnection, usbInterface, "localhost",
                         Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, 0, maxSize, "0")) {
                     LogUtil.d(TAG, "scrcpy start success.");
                     isStartMirrorCast = true;

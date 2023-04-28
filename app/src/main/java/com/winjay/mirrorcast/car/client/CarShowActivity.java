@@ -79,7 +79,7 @@ public class CarShowActivity extends BaseActivity {
                             @Override
                             public void surfaceCreated(@NonNull SurfaceHolder holder) {
                                 LogUtil.d(TAG);
-                                connectAppMirrorSocket();
+                                createCarLauncherVirtualDisplay();
                             }
 
                             @Override
@@ -111,7 +111,8 @@ public class CarShowActivity extends BaseActivity {
         });
     }
 
-    private void connectAppMirrorSocket() {
+    // 通知手机端为CarLauncher创建虚拟屏
+    private void createCarLauncherVirtualDisplay() {
         if (TextUtils.isEmpty(mServerIp)) {
             dialogToast("手机连接异常！");
             finish();
@@ -122,6 +123,7 @@ public class CarShowActivity extends BaseActivity {
             @Override
             public void onMessage(String message) {
                 LogUtil.d(TAG, "message=" + message);
+                // 开启手机端car launcher投屏
                 if (message.startsWith(Constants.APP_REPLY_VIRTUAL_DISPLAY_ID)) {
                     String[] split = message.split(Constants.COMMAND_SPLIT);
                     String displayId = split[1];
@@ -132,7 +134,7 @@ public class CarShowActivity extends BaseActivity {
                             displayId,
                             binding.carLauncherSv);
                 }
-                // car launcher: 镜像投屏
+                // car launcher页面中: 手机主页面镜像投屏
                 else if (message.equals(Constants.APP_COMMAND_PHONE_MAIN_SCREEN_MIRROR_CAST)) {
                     runOnUiThread(new Runnable() {
                         @Override
@@ -141,7 +143,7 @@ public class CarShowActivity extends BaseActivity {
                         }
                     });
                 }
-                // car launcher: 应用投屏
+                // car launcher页面中: 应用投屏
                 else if (message.startsWith(Constants.APP_COMMAND_PHONE_APP_MIRROR_CAST)) {
                     String[] split = message.split(Constants.COMMAND_SPLIT);
                     if (split.length < 4) {
@@ -274,7 +276,7 @@ public class CarShowActivity extends BaseActivity {
         screenDecoderSocketServerManager.startServer(serverPort, new ScreenDecoderSocketServer.OnSocketServerListener() {
             @Override
             public void onOpen() {
-                // car launcher
+                // 启动手机端car launcher到虚拟屏上
                 if (serverPort == Constants.CAR_LAUNCHER_MIRROR_CAST_SERVER_PORT) {
                     screenDecoderSocketServerManager.sendMessage(
                             Constants.SCRCPY_COMMAND_START_PHONE_APP_MIRROR_CAST
@@ -382,7 +384,7 @@ public class CarShowActivity extends BaseActivity {
             @Override
             public void run() {
                 LogUtil.d(TAG, "serverPort=" + serverPort + ",maxSize=" + maxSize + ",displayId=" + displayId);
-                if (ADBCommands.getInstance(CarShowActivity.this).startMirrorCast(NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
+                if (ADBCommands.getInstance(CarShowActivity.this).startMirrorCast(mServerIp, NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
                     LogUtil.d(TAG, "scrcpy server start success.");
                 } else {
                     LogUtil.e(TAG, "scrcpy server start failure!");

@@ -233,7 +233,7 @@ public class ScreenDecoderActivity extends BaseActivity {
             @Override
             public void run() {
                 LogUtil.d(TAG, "serverPort=" + serverPort + ",maxSize=" + maxSize + ",displayId=" + displayId);
-                if (ADBCommands.getInstance(ScreenDecoderActivity.this).startMirrorCast(NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
+                if (ADBCommands.getInstance(ScreenDecoderActivity.this).startMirrorCast(mServerIp, NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
                     LogUtil.d(TAG, "scrcpy start success.");
                 } else {
                     LogUtil.e(TAG, "scrcpy start failure!");
