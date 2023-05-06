@@ -1,9 +1,6 @@
 package com.winjay.mirrorcast;
 
 public class Constants {
-
-    public static final int IP_PORT = 1994;
-
     public static final int APP_SOCKET_PORT = 13346;
 
     public static final int CAR_LAUNCHER_MIRROR_CAST_SERVER_PORT = 12345;
@@ -12,6 +9,11 @@ public class Constants {
 
     public static final String COMMAND_SPLIT = "/";
 
+
+    /**
+     * Vehicle -> Phone App 检查手机/data/local/tmp目录下是否存在Scrcpy的包
+     */
+    public static final String APP_COMMAND_CHECK_SCRCPY_SERVER_JAR = "APP_COMMAND_CHECK_SCRCPY_SERVER_JAR";
     /**
      * Vehicle -> Phone App 创建虚拟屏
      */

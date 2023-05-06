@@ -1,9 +1,21 @@
 package com.winjay.mirrorcast.util;
 
+import android.app.ActivityOptions;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.hardware.display.DisplayManager;
+import android.hardware.display.VirtualDisplay;
+import android.media.MediaRouter;
+import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.Display;
+import android.view.SurfaceView;
 import android.view.WindowManager;
+
+import com.winjay.mirrorcast.AppApplication;
+import com.winjay.mirrorcast.Constants;
 
 import java.lang.reflect.Field;
 
@@ -93,4 +105,125 @@ public class DisplayUtil {
         }
         return statusBarHeight;
     }
+
+    public static int createVirtualDisplay(int orientation) {
+        int displayId = -1;
+        try {
+            LogUtil.d(TAG);
+            DisplayManager displayManager = (DisplayManager) AppApplication.context.getSystemService(Context.DISPLAY_SERVICE);
+            int[] screenSize = getScreenSize(AppApplication.context);
+            int flags = 139;
+//            int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION |
+//                    DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC |
+//                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR;
+            VirtualDisplay display;
+            if (orientation == 0) {
+                display = displayManager.createVirtualDisplay("app_mirror",
+                        screenSize[1], screenSize[0], screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
+                        flags);
+            } else {
+                display = displayManager.createVirtualDisplay("app_mirror",
+                        screenSize[0], screenSize[1], screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
+                        flags);
+            }
+
+            displayId = display.getDisplay().getDisplayId();
+            LogUtil.d(TAG, "virtual display ID=" + displayId);
+
+//            PackageManager packageManager = AppApplication.context.getPackageManager();
+//            boolean ret = packageManager.hasSystemFeature(PackageManager.FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS);
+//            LogUtil.d(TAG, "onCreate: have " + PackageManager.FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS + "   " + ret);
+//
+//            Intent intent = new Intent();
+//            intent.setComponent(new ComponentName("com.winjay.mirrorcast","com.winjay.mirrorcast.car.server.CarLauncherActivity"));
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+//
+//            ActivityOptions options = ActivityOptions.makeBasic();
+//            options.setLaunchDisplayId(displayId);
+//            Bundle optsBundle = options.toBundle();
+//
+//            AppApplication.context.startActivity(intent, optsBundle);
+
+//            send(Constants.APP_REPLY_VIRTUAL_DISPLAY_ID + Constants.COMMAND_SPLIT + displayId);
+        } catch (Exception e) {
+            LogUtil.e(TAG, "createVirtualDisplay error " + e.getMessage());
+            e.printStackTrace();
+        }
+        return displayId;
+    }
+
+    public static int createVirtualDisplay() {
+        /*try {
+            LogUtil.d(TAG);
+            DisplayManager displayManager = (DisplayManager) AppApplication.context.getSystemService(Context.DISPLAY_SERVICE);
+            int[] screenSize = getScreenSize(AppApplication.context);
+            int flags = 139;
+            VirtualDisplay display = displayManager.createVirtualDisplay("app_mirror",
+                    screenSize[1], screenSize[0], screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
+                    flags);
+
+            int displayId = display.getDisplay().getDisplayId();
+            LogUtil.d(TAG, "virtual display ID=" + displayId);
+            return displayId;
+        } catch (Exception e) {
+            LogUtil.e(TAG, "createVirtualDisplay error " + e.getMessage());
+            e.printStackTrace();
+        }
+        return -1;*/
+
+        return createVirtualDisplay(0);
+    }
+
+    /*private void createVirtualDisplay() {
+        try {
+            LogUtil.d(TAG);
+            DisplayManager displayManager = (DisplayManager) AppApplication.context.getSystemService(Context.DISPLAY_SERVICE);
+            int[] screenSize = DisplayUtil.getScreenSize(AppApplication.context);
+
+            int flags = 139;
+
+//            int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION |
+//                    DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC |
+//                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR;
+
+            VirtualDisplay virtualDisplay = displayManager.createVirtualDisplay("app_mirror",
+                    screenSize[0], screenSize[1], screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
+                    flags);
+            int displayId = virtualDisplay.getDisplay().getDisplayId();
+            LogUtil.d(TAG, "virtual display ID=" + displayId);
+
+            for (Display display : displayManager.getDisplays()) {
+                LogUtil.d(TAG, "dispaly: " + display.getName() + ", id " + display.getDisplayId() + " :" + display.toString());
+//                if (display.getDisplayId() != 0) {
+//                    SecondeDid = display.getDisplayId();
+//                }
+            }
+
+            Intent intent = new Intent();
+            intent.setComponent(new ComponentName("com.winjay.mirrorcast", "com.winjay.mirrorcast.car.server.CarLauncherActivity"));
+
+            ActivityOptions activityOptions = ActivityOptions.makeBasic();
+            MediaRouter mediaRouter = (MediaRouter) AppApplication.context.getSystemService(Context.MEDIA_ROUTER_SERVICE);
+            MediaRouter.RouteInfo route = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
+            if (route != null) {
+                Display presentationDisplay = route.getPresentationDisplay();
+                LogUtil.d(TAG, "displayId=" + presentationDisplay.getDisplayId());
+                Bundle bundle = activityOptions.setLaunchDisplayId(presentationDisplay.getDisplayId()).toBundle();
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                AppApplication.context.startActivity(intent, bundle);
+            }
+
+
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+//
+//            ActivityOptions options = ActivityOptions.makeBasic();
+//            options.setLaunchDisplayId(9);
+//            Bundle optsBundle = options.toBundle();
+
+//            AppApplication.context.startActivity(intent, optsBundle);
+        } catch (Exception e) {
+            LogUtil.e(TAG, "createVirtualDisplay error " + e.getMessage());
+            e.printStackTrace();
+        }
+    }*/
 }

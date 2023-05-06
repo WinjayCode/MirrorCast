@@ -6,9 +6,10 @@ import android.view.View;
 import androidx.annotation.Nullable;
 
 import com.winjay.mirrorcast.aoa.PhoneAOAActivity;
+import com.winjay.mirrorcast.app_socket.AppSocketServerManager;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityPhoneBinding;
-import com.winjay.mirrorcast.wifidirect.ServerThread;
+import com.winjay.mirrorcast.util.LogUtil;
 import com.winjay.mirrorcast.wifidirect.WIFIDirectActivity;
 
 /**
@@ -20,7 +21,7 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
 
     private ActivityPhoneBinding binding;
 
-    private ServerThread serverThread;
+//    private ServerThread serverThread;
 
 
     @Override
@@ -36,8 +37,10 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
         super.onCreate(savedInstanceState);
         initView();
 
-        serverThread = new ServerThread();
-        serverThread.start();
+//        serverThread = new ServerThread();
+//        serverThread.start();
+
+        AppSocketServerManager.getInstance().startServer();
     }
 
     private void initView() {
@@ -55,5 +58,12 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
         if (view == binding.btnAoa) {
             startActivity(PhoneAOAActivity.class);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LogUtil.d(TAG);
+        AppSocketServerManager.getInstance().stopServer();
     }
 }

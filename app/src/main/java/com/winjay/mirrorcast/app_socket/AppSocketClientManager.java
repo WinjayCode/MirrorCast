@@ -1,4 +1,4 @@
-package com.winjay.mirrorcast.app_mirror;
+package com.winjay.mirrorcast.app_socket;
 
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.util.LogUtil;
@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
  */
 public class AppSocketClientManager {
     private static final String TAG = AppSocketClientManager.class.getSimpleName();
-    private static AppSocketClientManager mInstance;
+    private static volatile AppSocketClientManager mInstance;
 
     private AppSocketClient mAppSocketClient;
 
@@ -20,9 +20,11 @@ public class AppSocketClientManager {
     }
 
     public static AppSocketClientManager getInstance() {
-        synchronized (AppSocketClientManager.class) {
-            if (mInstance == null) {
-                mInstance = new AppSocketClientManager();
+        if (mInstance == null) {
+            synchronized (AppSocketClientManager.class) {
+                if (mInstance == null) {
+                    mInstance = new AppSocketClientManager();
+                }
             }
         }
         return mInstance;
@@ -44,7 +46,17 @@ public class AppSocketClientManager {
     public void sendMessage(String message) {
         LogUtil.d(TAG, "message=" + message);
         if (mAppSocketClient != null) {
-            mAppSocketClient.send(message);
+            try {
+                mAppSocketClient.send(message);
+            } catch (Exception e) {
+                LogUtil.e(TAG, e.getMessage());
+            }
+        }
+    }
+
+    public void setAppSocketClientListener(AppSocketClient.AppSocketClientListener listener) {
+        if (mAppSocketClient != null) {
+            mAppSocketClient.setAppSocketClientListener(listener);
         }
     }
 

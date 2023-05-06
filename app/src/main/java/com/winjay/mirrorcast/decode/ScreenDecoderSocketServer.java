@@ -59,7 +59,7 @@ public class ScreenDecoderSocketServer extends WebSocketServer {
     }
 
     @Override
-        public void onMessage(WebSocket conn, ByteBuffer bytes) {
+    public void onMessage(WebSocket conn, ByteBuffer bytes) {
         byte[] buf = new byte[bytes.remaining()];
         bytes.get(buf);
         if (mOnReceiveByteDataListener != null) {
@@ -74,7 +74,11 @@ public class ScreenDecoderSocketServer extends WebSocketServer {
 
     public void sendMessage(String message) {
         if (mWebSocket != null) {
-            mWebSocket.send(message);
+            try {
+                mWebSocket.send(message);
+            } catch (Exception e) {
+                LogUtil.e(TAG, e.getMessage());
+            }
         }
     }
 

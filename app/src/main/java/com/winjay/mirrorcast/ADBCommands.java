@@ -151,6 +151,7 @@ public class ADBCommands {
             InputStream input_Stream = assetManager.open("scrcpy-server.jar");
             byte[] buffer = new byte[input_Stream.available()];
             input_Stream.read(buffer);
+            // 对scrcpy-server.jar文件进行base64编码
             return Base64.encode(buffer, Base64.NO_WRAP);
         } catch (IOException e) {
             e.printStackTrace();
@@ -262,8 +263,9 @@ public class ADBCommands {
                     }
                 }
             }
-            adbStream.write(" base64 -d < serverBase64 > scrcpy-server.jar && rm serverBase64" + '\n');
-            adbStream.close();
+            // base64解码
+            adbStream.write(" base64 -d serverBase64 > scrcpy-server.jar && rm serverBase64" + '\n');
+//            adbStream.close();
             return true;
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

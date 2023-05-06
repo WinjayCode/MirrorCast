@@ -9,10 +9,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.winjay.mirrorcast.app_socket.AppSocketManager;
 import com.winjay.mirrorcast.common.BaseFragment;
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.R;
-import com.winjay.mirrorcast.app_mirror.AppSocketClientManager;
 import com.winjay.mirrorcast.databinding.FragmentCarHomeTwoBinding;
 import com.winjay.mirrorcast.util.ActivityListUtil;
 import com.winjay.mirrorcast.util.LogUtil;
@@ -97,7 +97,7 @@ public class CarHomeTwoFragment extends BaseFragment<FragmentCarHomeTwoBinding> 
             @Override
             public void onItemClick(AppBean appBean) {
                 if (appBean.getAppName().equals("镜像投屏")) {
-                    AppSocketClientManager.getInstance().sendMessage(Constants.APP_COMMAND_PHONE_MAIN_SCREEN_MIRROR_CAST);
+                    AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_PHONE_MAIN_SCREEN_MIRROR_CAST);
                 } else if (appBean.getAppName().equals("应用投屏")) {
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                     transaction.add(R.id.content_rl, new CarAppFragment());
@@ -105,7 +105,7 @@ public class CarHomeTwoFragment extends BaseFragment<FragmentCarHomeTwoBinding> 
                     transaction.commit();
                 } else if (appBean.getAppName().equals("返回车机系统")) {
                     LogUtil.d(TAG, "return car system.");
-                    AppSocketClientManager.getInstance().sendMessage(Constants.APP_COMMAND_RETURN_CAR_SYSTEM);
+                    AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_RETURN_CAR_SYSTEM);
                     // close TipsActivity and CarLauncherActivity
                     LogUtil.d(TAG, "activity count=" + ActivityListUtil.getActivityCount());
                     for (int i = ActivityListUtil.getActivityCount() - 2; i < ActivityListUtil.getActivityCount(); i++) {

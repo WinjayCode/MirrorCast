@@ -26,6 +26,9 @@ import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.winjay.mirrorcast.AppApplication;
+import com.winjay.mirrorcast.app_socket.AppSocketClientManager;
+import com.winjay.mirrorcast.app_socket.AppSocketManager;
+import com.winjay.mirrorcast.app_socket.AppSocketServerManager;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityWifiDirectBinding;
 import com.winjay.mirrorcast.util.LogUtil;
@@ -91,11 +94,13 @@ public class WIFIDirectActivity extends BaseActivity {
             LogUtil.d(TAG, "getHostAddress: " + wifiP2pInfo.groupOwnerAddress.getHostAddress());
             StringBuilder stringBuilder = new StringBuilder();
             if (mWifiP2pDevice != null) {
+                stringBuilder.append("\n");
                 stringBuilder.append("连接的设备名：");
                 stringBuilder.append(mWifiP2pDevice.deviceName);
                 stringBuilder.append("\n");
                 stringBuilder.append("连接的设备的地址：");
                 stringBuilder.append(mWifiP2pDevice.deviceAddress);
+                stringBuilder.append("\n");
             }
 
             stringBuilder.append("\n");
@@ -108,12 +113,10 @@ public class WIFIDirectActivity extends BaseActivity {
 
             mWifiP2pInfo = wifiP2pInfo;
 
-            if (!wifiP2pInfo.isGroupOwner) {
-                AppApplication.destDeviceIp = wifiP2pInfo.groupOwnerAddress.getHostAddress();
-            }
-
-
-            if (wifiP2pInfo.groupFormed && !wifiP2pInfo.isGroupOwner) {
+            if (wifiP2pInfo.isGroupOwner) {
+                LogUtil.d(TAG, "current device is GO.");
+                AppSocketManager.getInstance().setIsWiFiDirectGroupOwner(true);
+            } else {
                 InetAddress inetAddress = NetUtil.getP2PInetAddress();
                 if (inetAddress != null) {
                     LogUtil.d(TAG, "show gc ip address:" + inetAddress.getHostAddress());
@@ -121,9 +124,32 @@ public class WIFIDirectActivity extends BaseActivity {
                             + "群员IP地址："
                             + inetAddress.getHostAddress() + "\n");
                 }
-                // send ip to GO
-                sendGCIP2GO();
+
+                // 如果对方设备为GO，那么自己就是GC，需要主动连接GO的socket server
+                LogUtil.d(TAG, "current device is GC.");
+                AppSocketServerManager.getInstance().stopServer();
+
+                AppSocketClientManager.getInstance().connect(wifiP2pInfo.groupOwnerAddress.getHostAddress());
+                AppApplication.destDeviceIp = wifiP2pInfo.groupOwnerAddress.getHostAddress();
+                AppSocketManager.getInstance().setIsWiFiDirectGroupOwner(false);
             }
+
+//            if (!wifiP2pInfo.isGroupOwner) {
+//                AppApplication.destDeviceIp = wifiP2pInfo.groupOwnerAddress.getHostAddress();
+//            }
+//
+//
+//            if (wifiP2pInfo.groupFormed && !wifiP2pInfo.isGroupOwner) {
+//                InetAddress inetAddress = NetUtil.getP2PInetAddress();
+//                if (inetAddress != null) {
+//                    LogUtil.d(TAG, "show gc ip address:" + inetAddress.getHostAddress());
+//                    binding.gcInfo.setText(binding.gcInfo.getText().toString()
+//                            + "群员IP地址："
+//                            + inetAddress.getHostAddress() + "\n");
+//                }
+//                // send ip to GO
+//                sendGCIP2GO();
+//            }
         }
 
         @Override
@@ -166,7 +192,7 @@ public class WIFIDirectActivity extends BaseActivity {
 
     private void sendGCIP2GO() {
         LogUtil.d(TAG);
-        new ClientThread(mWifiP2pInfo.groupOwnerAddress.getHostAddress()).start();
+//        new ClientThread(mWifiP2pInfo.groupOwnerAddress.getHostAddress()).start();
     }
 
     @Override

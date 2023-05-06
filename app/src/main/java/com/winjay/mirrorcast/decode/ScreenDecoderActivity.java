@@ -11,8 +11,7 @@ import androidx.annotation.NonNull;
 
 import com.winjay.mirrorcast.ADBCommands;
 import com.winjay.mirrorcast.Constants;
-import com.winjay.mirrorcast.app_mirror.AppSocketServer;
-import com.winjay.mirrorcast.app_mirror.AppSocketServerManager;
+import com.winjay.mirrorcast.app_socket.AppSocketManager;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityScreenDecoderBinding;
 import com.winjay.mirrorcast.util.DisplayUtil;
@@ -137,7 +136,7 @@ public class ScreenDecoderActivity extends BaseActivity {
 
                 binding.phoneAppScreenSv.setVisibility(View.VISIBLE);
 
-                AppSocketServerManager.getInstance().setAppSocketServerListener(new AppSocketServer.OnAppSocketServerListener() {
+                AppSocketManager.getInstance().setAppSocketListener(new AppSocketManager.AppSocketListener() {
                     @Override
                     public void onMessage(String message) {
                         LogUtil.d(TAG, "message=" + message);
@@ -153,25 +152,7 @@ public class ScreenDecoderActivity extends BaseActivity {
                         }
                     }
                 });
-                AppSocketServerManager.getInstance().sendMessage(Constants.APP_COMMAND_CREATE_VIRTUAL_DISPLAY + Constants.COMMAND_SPLIT + getRequestedOrientation());
-
-
-//                AppSocketClientManager.getInstance().createVirtualDisplay(mServerIp, getRequestedOrientation(), new AppSocketClient.OnMessageListener() {
-//                    @Override
-//                    public void onMessage(String message) {
-//                        LogUtil.d(TAG, "message=" + message);
-//                        if (message.startsWith(Constants.APP_REPLY_VIRTUAL_DISPLAY_ID)) {
-//                            String[] split = message.split(Constants.COMMAND_SPLIT);
-//                            String displayId = split[1];
-//                            LogUtil.d(TAG, "displayId=" + displayId);
-//                            mPhoneAppScreenDecoderSocketServerManager = startScrcpyServer(
-//                                    Constants.PHONE_APP_MIRROR_CAST_SERVER_PORT,
-//                                    Math.max(screenSize[0], screenSize[1]),
-//                                    displayId,
-//                                    binding.phoneAppScreenSv);
-//                        }
-//                    }
-//                });
+                AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_CREATE_VIRTUAL_DISPLAY + Constants.COMMAND_SPLIT + getRequestedOrientation());
             }
         });
 

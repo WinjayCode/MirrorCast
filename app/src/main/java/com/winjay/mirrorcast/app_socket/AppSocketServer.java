@@ -1,7 +1,8 @@
-package com.winjay.mirrorcast.app_mirror;
+package com.winjay.mirrorcast.app_socket;
 
 import android.text.TextUtils;
 
+import com.winjay.mirrorcast.AppApplication;
 import com.winjay.mirrorcast.util.LogUtil;
 
 import org.java_websocket.WebSocket;
@@ -25,6 +26,7 @@ public class AppSocketServer extends WebSocketServer {
         LogUtil.d(TAG);
         mWebSocket = conn;
         LogUtil.d(TAG, "client ip=" + conn.getRemoteSocketAddress().getAddress());
+        AppApplication.destDeviceIp = conn.getRemoteSocketAddress().getAddress().getHostAddress();
     }
 
     @Override
@@ -35,21 +37,21 @@ public class AppSocketServer extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, String message) {
         LogUtil.d(TAG, "message=" + message);
+        if (message.equals("ping")) {
+            LogUtil.d(TAG, "receive ping and send pong.");
+            sendMessage("pong");
+            return;
+        }
+
         if (mOnAppSocketServerListener != null) {
             mOnAppSocketServerListener.onMessage(message);
         }
+        AppSocketManager.getInstance().handleMessage(message);
     }
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
         LogUtil.e(TAG, ex.getMessage());
-
-//        HandlerManager.getInstance().postOnSubThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                AppMirrorSocketServerManager.getInstance().restartServer();
-//            }
-//        });
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.winjay.mirrorcast.app_mirror;
+package com.winjay.mirrorcast.app_socket;
 
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.util.LogUtil;
@@ -11,7 +11,7 @@ import java.net.InetSocketAddress;
  */
 public class AppSocketServerManager {
     private static final String TAG = AppSocketServerManager.class.getSimpleName();
-    private static AppSocketServerManager mInstance;
+    private static volatile AppSocketServerManager mInstance;
 
     private AppSocketServer mAppSocketServer;
 
@@ -19,9 +19,11 @@ public class AppSocketServerManager {
     }
 
     public static AppSocketServerManager getInstance() {
-        synchronized (AppSocketServerManager.class) {
-            if (mInstance == null) {
-                mInstance = new AppSocketServerManager();
+        if (mInstance == null) {
+            synchronized (AppSocketServerManager.class) {
+                if (mInstance == null) {
+                    mInstance = new AppSocketServerManager();
+                }
             }
         }
         return mInstance;
@@ -34,12 +36,6 @@ public class AppSocketServerManager {
             mAppSocketServer.start();
         }
     }
-
-//    public void restartServer() {
-//        LogUtil.d(TAG);
-//        mAppSocketServer = new AppSocketServer(new InetSocketAddress(Constants.APP_SOCKET_PORT));
-//        mAppSocketServer.start();
-//    }
 
     public void setAppSocketServerListener(AppSocketServer.OnAppSocketServerListener listener) {
         if (mAppSocketServer != null) {
@@ -55,6 +51,8 @@ public class AppSocketServerManager {
             } catch (InterruptedException e) {
                 LogUtil.e(TAG, "error=" + e.getMessage());
                 e.printStackTrace();
+            } finally {
+                mAppSocketServer = null;
             }
         }
     }

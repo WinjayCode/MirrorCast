@@ -11,11 +11,10 @@ import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.winjay.mirrorcast.app_socket.AppSocketManager;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.ADBCommands;
-import com.winjay.mirrorcast.app_mirror.AppSocketServer;
-import com.winjay.mirrorcast.app_mirror.AppSocketServerManager;
 import com.winjay.mirrorcast.car.server.CarLauncherActivity;
 import com.winjay.mirrorcast.databinding.ActivityCarShowBinding;
 import com.winjay.mirrorcast.decode.ScreenDecoderSocketServer;
@@ -29,8 +28,8 @@ import com.winjay.mirrorcast.util.NetUtil;
  * @author F2848777
  * @date 2022-11-25
  */
-public class CarShowActivity extends BaseActivity {
-    private static final String TAG = CarShowActivity.class.getSimpleName();
+public class ShowCarLauncherActivity extends BaseActivity {
+    private static final String TAG = ShowCarLauncherActivity.class.getSimpleName();
     private ActivityCarShowBinding binding;
 
     private ScreenDecoderSocketServerManager mCarLauncherScreenDecoderSocketServerManager;
@@ -119,7 +118,7 @@ public class CarShowActivity extends BaseActivity {
             return;
         }
 
-        AppSocketServerManager.getInstance().setAppSocketServerListener(new AppSocketServer.OnAppSocketServerListener() {
+        AppSocketManager.getInstance().setAppSocketListener(new AppSocketManager.AppSocketListener() {
             @Override
             public void onMessage(String message) {
                 LogUtil.d(TAG, "message=" + message);
@@ -184,7 +183,7 @@ public class CarShowActivity extends BaseActivity {
                 }
             }
         });
-        AppSocketServerManager.getInstance().sendMessage(Constants.APP_COMMAND_CREATE_VIRTUAL_DISPLAY + Constants.COMMAND_SPLIT + getRequestedOrientation());
+        AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_CREATE_VIRTUAL_DISPLAY + Constants.COMMAND_SPLIT + getRequestedOrientation());
     }
 
     private void carLauncherPhoneMainScreenMirrorCast() {
@@ -287,7 +286,7 @@ public class CarShowActivity extends BaseActivity {
                                     + Constants.COMMAND_SPLIT
                                     + displayId);
 
-                    AppSocketServerManager.getInstance().sendMessage(Constants.APP_COMMAND_SHOW_TIPS);
+                    AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_SHOW_TIPS);
                 }
                 // phone app screen
                 if (serverPort == Constants.PHONE_APP_MIRROR_CAST_SERVER_PORT) {
@@ -339,7 +338,7 @@ public class CarShowActivity extends BaseActivity {
                             if (serverPort == Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT) {
                                 RelativeLayout.LayoutParams rootRLLayoutParams = (RelativeLayout.LayoutParams) binding.phoneMainScreenLayout.mirrorWindowRl.getLayoutParams();
                                 rootRLLayoutParams.width = videoWidth;
-                                rootRLLayoutParams.height = videoHeight + DisplayUtil.dp2px(CarShowActivity.this, 30);
+                                rootRLLayoutParams.height = videoHeight + DisplayUtil.dp2px(ShowCarLauncherActivity.this, 30);
                                 binding.phoneMainScreenLayout.mirrorWindowRl.setLayoutParams(rootRLLayoutParams);
 
                                 RelativeLayout.LayoutParams controlBarRlLayoutParams = (RelativeLayout.LayoutParams) binding.phoneMainScreenLayout.controlBarRl.getLayoutParams();
@@ -358,7 +357,7 @@ public class CarShowActivity extends BaseActivity {
                             if (serverPort == Constants.PHONE_APP_MIRROR_CAST_SERVER_PORT) {
                                 RelativeLayout.LayoutParams rootRLLayoutParams = (RelativeLayout.LayoutParams) binding.phoneAppScreenLayout.mirrorWindowRl.getLayoutParams();
                                 rootRLLayoutParams.width = videoWidth;
-                                rootRLLayoutParams.height = videoHeight + DisplayUtil.dp2px(CarShowActivity.this, 30);
+                                rootRLLayoutParams.height = videoHeight + DisplayUtil.dp2px(ShowCarLauncherActivity.this, 30);
                                 binding.phoneAppScreenLayout.mirrorWindowRl.setLayoutParams(rootRLLayoutParams);
 
                                 RelativeLayout.LayoutParams controlBarRlLayoutParams = (RelativeLayout.LayoutParams) binding.phoneAppScreenLayout.controlBarRl.getLayoutParams();
@@ -384,7 +383,7 @@ public class CarShowActivity extends BaseActivity {
             @Override
             public void run() {
                 LogUtil.d(TAG, "serverPort=" + serverPort + ",maxSize=" + maxSize + ",displayId=" + displayId);
-                if (ADBCommands.getInstance(CarShowActivity.this).startMirrorCast(mServerIp, NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
+                if (ADBCommands.getInstance(ShowCarLauncherActivity.this).startMirrorCast(mServerIp, NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
                     LogUtil.d(TAG, "scrcpy server start success.");
                 } else {
                     LogUtil.e(TAG, "scrcpy server start failure!");

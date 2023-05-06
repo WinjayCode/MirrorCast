@@ -1,33 +1,22 @@
 package com.winjay.mirrorcast;
 
-import android.app.ActivityOptions;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.hardware.display.DisplayManager;
-import android.hardware.display.VirtualDisplay;
-import android.media.MediaRouter;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.Display;
-import android.view.SurfaceView;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
 import com.winjay.mirrorcast.aoa.VehicleAOAActivity;
-import com.winjay.mirrorcast.app_mirror.AppSocketServer;
-import com.winjay.mirrorcast.app_mirror.AppSocketServerManager;
-import com.winjay.mirrorcast.car.client.CarShowActivity;
+import com.winjay.mirrorcast.app_socket.AppSocketManager;
+import com.winjay.mirrorcast.app_socket.AppSocketServerManager;
+import com.winjay.mirrorcast.car.client.ShowCarLauncherActivity;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityVehicleBinding;
 import com.winjay.mirrorcast.decode.ScreenDecoderActivity;
 import com.winjay.mirrorcast.server.ScreenService;
-import com.winjay.mirrorcast.util.DisplayUtil;
 import com.winjay.mirrorcast.util.LogUtil;
-import com.winjay.mirrorcast.wifidirect.ClientThread;
-import com.winjay.mirrorcast.wifidirect.ServerThread;
 import com.winjay.mirrorcast.wifidirect.WIFIDirectActivity;
 
 /**
@@ -44,9 +33,6 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 
     private boolean isRecording = false;
 
-    private ServerThread serverThread;
-
-
     @Override
     protected View viewBinding() {
         binding = ActivityVehicleBinding.inflate(getLayoutInflater());
@@ -61,9 +47,6 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
         initView();
 
         mediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
-
-        serverThread = new ServerThread();
-        serverThread.start();
 
         AppSocketServerManager.getInstance().startServer();
     }
@@ -87,10 +70,12 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 //            Intent intent = new Intent(this, CarLauncherActivity.class);
 //            startActivity(intent);
         }
+
         // aoa
         if (v == binding.btnAoa) {
             startActivity(VehicleAOAActivity.class);
         }
+
         if (v == binding.btnStartRecord) {
 //            if (!isRecording) {
 //                isRecording = true;
@@ -102,6 +87,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 //                binding.btnStartRecord.setText("开始投屏");
 //            }
         }
+
         // 连接投屏服务
         if (v == binding.connectMirrorCastServer) {
             if (TextUtils.isEmpty(AppApplication.destDeviceIp) && TextUtils.isEmpty(binding.ipEd.getText().toString())) {
@@ -119,6 +105,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                 return;
             }
         }
+
         // 接收投屏
         if (v == binding.btnStartReceive) {
             if (!mMirrorCastServerConnected) {
@@ -137,6 +124,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
             intent.putExtra("serverIp", serverIp);
             startActivity(intent);
         }
+
         // car launcher
         if (v == binding.btnCarHome) {
             if (!mMirrorCastServerConnected) {
@@ -144,7 +132,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                 return;
             }
 
-            Intent intent = new Intent(this, CarShowActivity.class);
+            Intent intent = new Intent(this, ShowCarLauncherActivity.class);
             String serverIp = "";
             if (!TextUtils.isEmpty(AppApplication.destDeviceIp)) {
                 serverIp = AppApplication.destDeviceIp;
@@ -171,59 +159,6 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
         }
     }
 
-    private void createVirtualDisplay() {
-        try {
-            LogUtil.d(TAG);
-            DisplayManager displayManager = (DisplayManager) AppApplication.context.getSystemService(Context.DISPLAY_SERVICE);
-            int[] screenSize = DisplayUtil.getScreenSize(AppApplication.context);
-
-            int flags = 139;
-
-//            int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION |
-//                    DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC |
-//                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR;
-
-            VirtualDisplay virtualDisplay = displayManager.createVirtualDisplay("app_mirror",
-                    screenSize[0], screenSize[1], screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
-                    flags);
-            int displayId = virtualDisplay.getDisplay().getDisplayId();
-            LogUtil.d(TAG, "virtual display ID=" + displayId);
-
-            for (Display display : displayManager.getDisplays()) {
-                LogUtil.d(TAG, "dispaly: " + display.getName() + ", id " + display.getDisplayId() + " :" + display.toString());
-//                if (display.getDisplayId() != 0) {
-//                    SecondeDid = display.getDisplayId();
-//                }
-            }
-
-            Intent intent = new Intent();
-            intent.setComponent(new ComponentName("com.winjay.mirrorcast", "com.winjay.mirrorcast.car.server.CarLauncherActivity"));
-
-            ActivityOptions activityOptions = ActivityOptions.makeBasic();
-            MediaRouter mediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
-            MediaRouter.RouteInfo route = mediaRouter.getSelectedRoute(MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
-            if (route != null) {
-                Display presentationDisplay = route.getPresentationDisplay();
-                LogUtil.d(TAG, "displayId=" + presentationDisplay.getDisplayId());
-                Bundle bundle = activityOptions.setLaunchDisplayId(presentationDisplay.getDisplayId()).toBundle();
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent, bundle);
-            }
-
-
-//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-//
-//            ActivityOptions options = ActivityOptions.makeBasic();
-//            options.setLaunchDisplayId(9);
-//            Bundle optsBundle = options.toBundle();
-
-//            AppApplication.context.startActivity(intent, optsBundle);
-        } catch (Exception e) {
-            LogUtil.e(TAG, "createVirtualDisplay error " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
     private boolean mMirrorCastServerConnected = false;
 
     private void connectMirrorCastServer(String serverIp) {
@@ -232,7 +167,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
             return;
         }
 
-        AppSocketServerManager.getInstance().setAppSocketServerListener(new AppSocketServer.OnAppSocketServerListener() {
+        AppSocketManager.getInstance().setAppSocketListener(new AppSocketManager.AppSocketListener() {
             @Override
             public void onMessage(String message) {
                 LogUtil.d(TAG, "message=" + message);
@@ -287,7 +222,64 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                 }
             }
         });
-        new ClientThread(serverIp, true).start();
+        AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_CHECK_SCRCPY_SERVER_JAR);
+
+//        AppSocketServerManager.getInstance().setAppSocketServerListener(new AppSocketServer.OnAppSocketServerListener() {
+//            @Override
+//            public void onMessage(String message) {
+//                LogUtil.d(TAG, "message=" + message);
+//                if (message.startsWith(Constants.APP_REPLY_CHECK_SCRCPY_SERVER_JAR)) {
+//                    String[] split = message.split(Constants.COMMAND_SPLIT);
+//                    if (split[1].equals("0")) {
+//                        new Thread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                LogUtil.d(TAG, "serverIp=" + serverIp);
+//                                runOnUiThread(new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        showLoadingDialog("正在连接投屏服务");
+//                                    }
+//                                });
+//
+//                                if (ADBCommands.getInstance(VehicleActivity.this).sendServerJar(serverIp)) {
+//                                    mMirrorCastServerConnected = true;
+//
+//                                    runOnUiThread(new Runnable() {
+//                                        @Override
+//                                        public void run() {
+//                                            dismissLoadingDialog();
+//                                            dialogToast("投屏服务连接成功！");
+//                                        }
+//                                    });
+//                                } else {
+//                                    mMirrorCastServerConnected = false;
+//
+//                                    runOnUiThread(new Runnable() {
+//                                        @Override
+//                                        public void run() {
+//                                            dismissLoadingDialog();
+//                                            dialogToast("投屏服务连接失败！");
+//                                        }
+//                                    });
+//                                }
+//                            }
+//                        }).start();
+//                    } else if (split[1].equals("1")) {
+//                        mMirrorCastServerConnected = true;
+//
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                dismissLoadingDialog();
+//                                dialogToast("投屏服务连接成功！");
+//                            }
+//                        });
+//                    }
+//                }
+//            }
+//        });
+//        new ClientThread(serverIp, true).start();
     }
 
     // 请求开始录屏
@@ -319,7 +311,6 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
     protected void onDestroy() {
         super.onDestroy();
         LogUtil.d(TAG);
-        serverThread.close();
         AppSocketServerManager.getInstance().stopServer();
 //        System.exit(0);
     }

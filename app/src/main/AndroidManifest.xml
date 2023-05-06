@@ -147,7 +147,7 @@
 
         <!-- car -->
         <activity
-            android:name=".car.client.CarShowActivity"
+            android:name=".car.client.ShowCarLauncherActivity"
             android:exported="true"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.Client" />
