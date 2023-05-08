@@ -54,7 +54,7 @@ public class PhoneAOASocketServer extends WebSocketServer {
     @Override
     public void onError(WebSocket conn, Exception ex) {
         if (mOnWebSocketServerListener != null) {
-            LogUtil.w(TAG, ex.getMessage());
+            LogUtil.e(TAG, ex.getMessage());
             mOnWebSocketServerListener.onError(ex.getMessage());
         }
     }

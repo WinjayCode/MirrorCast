@@ -111,7 +111,7 @@ public class DroidSocketClient extends WebSocketClient {
             try {
                 runCMDNoResult(command);
             } catch (Exception e) {
-                Ln.i("doCommand() error " + e.getMessage());
+                Ln.d("doCommand() error " + e.getMessage());
                 e.printStackTrace();
             }
         }

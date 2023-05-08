@@ -36,6 +36,7 @@ public class TipsActivity extends BaseActivity {
         binding.backgroundLl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // TODO 会导致应用activity都被关闭...
                 // return phone launcher
                 Intent intent = new Intent();
                 intent.addCategory(Intent.CATEGORY_HOME);

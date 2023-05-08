@@ -124,7 +124,7 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
 
     @Override
     public void onOpen() {
-
+        LogUtil.d(TAG);
     }
 
     @Override
@@ -136,11 +136,11 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
 
     @Override
     public void onClose(String reason) {
-
+        LogUtil.d(TAG, "reason=" + reason);
     }
 
     @Override
     public void onError(String errorMessage) {
-
+        LogUtil.e(TAG, "errorMessage=" + errorMessage);
     }
 }

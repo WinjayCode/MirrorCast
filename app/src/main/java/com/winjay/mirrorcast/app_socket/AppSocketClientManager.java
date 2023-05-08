@@ -32,11 +32,12 @@ public class AppSocketClientManager {
 
     public void connect(String serverIp) {
         if (mAppSocketClient == null) {
+            LogUtil.d(TAG, "serverIp=" + serverIp);
             try {
                 URI uri = new URI("ws://" + serverIp + ":" + Constants.APP_SOCKET_PORT);
                 mAppSocketClient = new AppSocketClient(uri);
                 mAppSocketClient.connect();
-            } catch (URISyntaxException e) {
+            } catch (Exception e) {
                 LogUtil.e(TAG, "error=" + e.getMessage());
                 e.printStackTrace();
             }
@@ -44,8 +45,8 @@ public class AppSocketClientManager {
     }
 
     public void sendMessage(String message) {
-        LogUtil.d(TAG, "message=" + message);
         if (mAppSocketClient != null) {
+            LogUtil.d(TAG, "message=" + message);
             try {
                 mAppSocketClient.send(message);
             } catch (Exception e) {
@@ -61,8 +62,8 @@ public class AppSocketClientManager {
     }
 
     public void close() {
-        LogUtil.d(TAG);
         if (mAppSocketClient != null) {
+            LogUtil.d(TAG);
             mAppSocketClient.close();
         }
     }

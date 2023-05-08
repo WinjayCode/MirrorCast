@@ -1,4 +1,4 @@
-package com.winjay.mirrorcast.decode;
+package com.winjay.mirrorcast;
 
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -9,17 +9,17 @@ import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 
-import com.winjay.mirrorcast.ADBCommands;
-import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.app_socket.AppSocketManager;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityScreenDecoderBinding;
+import com.winjay.mirrorcast.decode.ScreenDecoderSocketServer;
+import com.winjay.mirrorcast.decode.ScreenDecoderSocketServerManager;
 import com.winjay.mirrorcast.util.DisplayUtil;
 import com.winjay.mirrorcast.util.LogUtil;
 import com.winjay.mirrorcast.util.NetUtil;
 
-public class ScreenDecoderActivity extends BaseActivity {
-    private static final String TAG = ScreenDecoderActivity.class.getSimpleName();
+public class TestScreenDecoderActivity extends BaseActivity {
+    private static final String TAG = TestScreenDecoderActivity.class.getSimpleName();
 
     private String mServerIp;
 
@@ -52,7 +52,7 @@ public class ScreenDecoderActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        screenSize = DisplayUtil.getScreenSize(ScreenDecoderActivity.this);
+        screenSize = DisplayUtil.getScreenSize(TestScreenDecoderActivity.this);
 
         maxSize = screenSize[1];
 //        if (getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
@@ -214,7 +214,7 @@ public class ScreenDecoderActivity extends BaseActivity {
             @Override
             public void run() {
                 LogUtil.d(TAG, "serverPort=" + serverPort + ",maxSize=" + maxSize + ",displayId=" + displayId);
-                if (ADBCommands.getInstance(ScreenDecoderActivity.this).startMirrorCast(mServerIp, NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
+                if (ADBCommands.getInstance(TestScreenDecoderActivity.this).startMirrorCast(mServerIp, NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
                     LogUtil.d(TAG, "scrcpy start success.");
                 } else {
                     LogUtil.e(TAG, "scrcpy start failure!");

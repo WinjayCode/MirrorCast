@@ -14,7 +14,6 @@ import com.winjay.mirrorcast.app_socket.AppSocketServerManager;
 import com.winjay.mirrorcast.car.client.ShowCarLauncherActivity;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityVehicleBinding;
-import com.winjay.mirrorcast.decode.ScreenDecoderActivity;
 import com.winjay.mirrorcast.server.ScreenService;
 import com.winjay.mirrorcast.util.LogUtil;
 import com.winjay.mirrorcast.wifidirect.WIFIDirectActivity;
@@ -113,7 +112,7 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                 return;
             }
 
-            Intent intent = new Intent(this, ScreenDecoderActivity.class);
+            Intent intent = new Intent(this, TestScreenDecoderActivity.class);
             String serverIp = "";
             if (!TextUtils.isEmpty(AppApplication.destDeviceIp)) {
                 serverIp = AppApplication.destDeviceIp;
@@ -223,63 +222,6 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
             }
         });
         AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_CHECK_SCRCPY_SERVER_JAR);
-
-//        AppSocketServerManager.getInstance().setAppSocketServerListener(new AppSocketServer.OnAppSocketServerListener() {
-//            @Override
-//            public void onMessage(String message) {
-//                LogUtil.d(TAG, "message=" + message);
-//                if (message.startsWith(Constants.APP_REPLY_CHECK_SCRCPY_SERVER_JAR)) {
-//                    String[] split = message.split(Constants.COMMAND_SPLIT);
-//                    if (split[1].equals("0")) {
-//                        new Thread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                LogUtil.d(TAG, "serverIp=" + serverIp);
-//                                runOnUiThread(new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        showLoadingDialog("正在连接投屏服务");
-//                                    }
-//                                });
-//
-//                                if (ADBCommands.getInstance(VehicleActivity.this).sendServerJar(serverIp)) {
-//                                    mMirrorCastServerConnected = true;
-//
-//                                    runOnUiThread(new Runnable() {
-//                                        @Override
-//                                        public void run() {
-//                                            dismissLoadingDialog();
-//                                            dialogToast("投屏服务连接成功！");
-//                                        }
-//                                    });
-//                                } else {
-//                                    mMirrorCastServerConnected = false;
-//
-//                                    runOnUiThread(new Runnable() {
-//                                        @Override
-//                                        public void run() {
-//                                            dismissLoadingDialog();
-//                                            dialogToast("投屏服务连接失败！");
-//                                        }
-//                                    });
-//                                }
-//                            }
-//                        }).start();
-//                    } else if (split[1].equals("1")) {
-//                        mMirrorCastServerConnected = true;
-//
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                dismissLoadingDialog();
-//                                dialogToast("投屏服务连接成功！");
-//                            }
-//                        });
-//                    }
-//                }
-//            }
-//        });
-//        new ClientThread(serverIp, true).start();
     }
 
     // 请求开始录屏

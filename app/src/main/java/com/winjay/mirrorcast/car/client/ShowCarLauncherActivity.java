@@ -238,10 +238,10 @@ public class ShowCarLauncherActivity extends BaseActivity {
         binding.phoneAppScreenLayout.closeIv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                binding.phoneAppScreenLayout.mirrorWindowRl.setVisibility(View.GONE);
                 if (mPhoneAppScreenDecoderSocketServerManager != null) {
                     mPhoneAppScreenDecoderSocketServerManager.stopServer();
                 }
+                binding.phoneAppScreenLayout.mirrorWindowRl.setVisibility(View.GONE);
             }
         });
 
@@ -262,6 +262,21 @@ public class ShowCarLauncherActivity extends BaseActivity {
                 return true;
             }
         });
+
+//        binding.phoneAppScreenLayout.mirrorWindowSv.getHolder().addCallback(new SurfaceHolder.Callback() {
+//            @Override
+//            public void surfaceCreated(@NonNull SurfaceHolder holder) {
+//            }
+//
+//            @Override
+//            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+//            }
+//
+//            @Override
+//            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+//
+//            }
+//        });
 
         mPhoneAppScreenDecoderSocketServerManager = startScrcpyServer(
                 Constants.PHONE_APP_MIRROR_CAST_SERVER_PORT,

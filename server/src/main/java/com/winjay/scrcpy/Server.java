@@ -17,7 +17,7 @@ public final class Server {
         // not instantiable
     }
 
-    private static void scrcpy(Options options) throws IOException {
+    private static void scrcpy(Options options) {
         Ln.i("Device: " + Build.MANUFACTURER + " " + Build.MODEL + " (Android " + Build.VERSION.RELEASE + ")");
         final Device device = new Device(options);
         List<CodecOption> codecOptions = options.getCodecOptions();
@@ -43,7 +43,6 @@ public final class Server {
                 }
             });
 
-            Thread controllerThread = null;
             if (control) {
                 final DroidController controller = new DroidController(device, options.getClipboardAutosync(), options.getPowerOn());
                 controller.control();
@@ -55,21 +54,18 @@ public final class Server {
                 Ln.i("Screen streaming start");
                 // synchronous
                 screenEncoder.streamScreen(device);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // this is expected on close
-                Ln.i("Screen streaming error");
+                Ln.e("Screen streaming error, " + e.getMessage());
             } finally {
                 Ln.i("Screen streaming stopped");
                 screenEncoder.stopStreamScreen();
 //                initThread.interrupt();
-                if (controllerThread != null) {
-                    controllerThread.interrupt();
-                }
                 DroidSocketClientManager.getInstance().close();
             }
             System.exit(0);
         } catch (Exception e) {
-            Ln.i("scrcpy start error=" + e.getMessage());
+            Ln.e("scrcpy start error=" + e.getMessage());
         }
 
 //        try (DesktopConnection connection = DesktopConnection.open(tunnelForward, control, sendDummyByte)) {

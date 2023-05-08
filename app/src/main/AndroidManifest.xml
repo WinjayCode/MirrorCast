@@ -140,7 +140,7 @@
 
         <!-- client -->
         <activity
-            android:name=".decode.ScreenDecoderActivity"
+            android:name=".TestScreenDecoderActivity"
             android:exported="true"
             android:theme="@style/Theme.Client" />
         <!-- client -->
