@@ -32,6 +32,7 @@ public class ScreenDecoder {
             mMediaCodec.configure(mediaFormat, surface, null, 0);
             mMediaCodec.start();
         } catch (IOException e) {
+            LogUtil.e(TAG, "start decode error=" + e.getMessage());
             e.printStackTrace();
         }
     }

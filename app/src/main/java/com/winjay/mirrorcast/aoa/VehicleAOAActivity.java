@@ -1,17 +1,21 @@
 package com.winjay.mirrorcast.aoa;
 
+import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbInterface;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.winjay.mirrorcast.ADBCommands;
@@ -22,7 +26,6 @@ import com.winjay.mirrorcast.decode.ScreenDecoder;
 import com.winjay.mirrorcast.util.DisplayUtil;
 import com.winjay.mirrorcast.util.LogUtil;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,7 +53,13 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     private float phoneMainScreenWidthRatio;
     private float phoneMainScreenHeightRatio;
 
+    private boolean startMirrorCastSucceed = false;
     private boolean isStartMirrorCast = false;
+
+    @Override
+    public boolean isFullScreen() {
+        return true;
+    }
 
     @Override
     protected View viewBinding() {
@@ -130,10 +139,26 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                     layoutParams.width = msg.arg1;
                     layoutParams.height = msg.arg2;
                     binding.phoneMainScreenSv.setLayoutParams(layoutParams);
-//                    binding.phoneMainScreenSv.setVisibility(View.VISIBLE);
 
-                    mScreenDecoder = new ScreenDecoder();
-                    mScreenDecoder.startDecode(binding.phoneMainScreenSv.getHolder().getSurface(), msg.arg1, msg.arg2);
+                    binding.phoneMainScreenSv.getHolder().addCallback(new SurfaceHolder.Callback() {
+                        @Override
+                        public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                        }
+
+                        @Override
+                        public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+                            if (binding.phoneMainScreenSv.getVisibility() == View.VISIBLE) {
+                                mScreenDecoder = new ScreenDecoder();
+                                mScreenDecoder.startDecode(binding.phoneMainScreenSv.getHolder().getSurface(), msg.arg1, msg.arg2);
+                                isStartMirrorCast = true;
+                            }
+                        }
+
+                        @Override
+                        public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+                        }
+                    });
+                    binding.phoneMainScreenSv.setVisibility(View.VISIBLE);
                     break;
             }
         }
@@ -148,9 +173,10 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 
     @Override
     public void onReceivedData(byte[] data, int length) {
-        if (isStartMirrorCast) {
+//        LogUtil.d(TAG, "startMirrorCastSucceed=" + startMirrorCastSucceed + ", isStartMirrorCast=" + isStartMirrorCast);
+        if (startMirrorCastSucceed && isStartMirrorCast) {
             if (mScreenDecoder != null) {
-                LogUtil.d(TAG, "start decode!");
+//                LogUtil.d(TAG, "decoding!");
                 // 解析投屏视频数据
                 mScreenDecoder.decodeData(data);
             }
@@ -159,15 +185,6 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 
         String message = new String(data, 0, length);
         LogUtil.d(TAG, "message=" + message);
-
-//        if (message.startsWith("phone:")) {
-//            LogUtil.d(TAG, "host received=" + message);
-//
-//            Message m = Message.obtain(mHandler, MESSAGE_STR);
-//            m.obj = message;
-//            mHandler.sendMessage(m);
-//            return;
-//        }
 
         // 接收手机端是否存在scrcpy-server.jar文件的结果
         if (message.startsWith(Constants.APP_REPLY_CHECK_SCRCPY_SERVER_JAR)) {
@@ -210,6 +227,11 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
         Message m = Message.obtain(mHandler, MESSAGE_STR);
         m.obj = message;
         mHandler.sendMessage(m);
+    }
+
+    @Override
+    public void onDetached() {
+        finish();
     }
 
     private boolean sendServerJar() {
@@ -260,24 +282,28 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if (usbInterface == null) {
-                    usbInterface = findAdbInterface(usbDevice);
-                }
-                if (ADBCommands.getInstance(VehicleAOAActivity.this).startMirrorCast(usbDeviceConnection, usbInterface, "localhost",
-                        Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, 0, maxSize, "0")) {
-                    LogUtil.d(TAG, "scrcpy start success.");
-                    isStartMirrorCast = true;
+                UsbManager mManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+                UsbDeviceConnection connection = mManager.openDevice(usbDevice);
+                usbInterface = findAdbInterface(usbDevice);
+                if (connection != null) {
+                    if (connection.claimInterface(usbInterface, true)) {
+                        if (ADBCommands.getInstance(VehicleAOAActivity.this).startMirrorCast(connection, usbInterface, "localhost",
+                                Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, 0, maxSize, "0")) {
+                            LogUtil.d(TAG, "scrcpy start success.");
+                            startMirrorCastSucceed = true;
 
-                    Message m = Message.obtain(mHandler, MESSAGE_STR);
-                    m.obj = "投屏启动成功!";
-                    mHandler.sendMessage(m);
-                } else {
-                    LogUtil.e(TAG, "scrcpy start failure!");
-                    isStartMirrorCast = false;
+                            Message m = Message.obtain(mHandler, MESSAGE_STR);
+                            m.obj = "投屏启动成功!";
+                            mHandler.sendMessage(m);
+                        } else {
+                            LogUtil.e(TAG, "scrcpy start failure!");
+                            startMirrorCastSucceed = false;
 
-                    Message m = Message.obtain(mHandler, MESSAGE_STR);
-                    m.obj = "投屏启动失败!";
-                    mHandler.sendMessage(m);
+                            Message m = Message.obtain(mHandler, MESSAGE_STR);
+                            m.obj = "投屏启动失败!";
+                            mHandler.sendMessage(m);
+                        }
+                    }
                 }
             }
         }).start();

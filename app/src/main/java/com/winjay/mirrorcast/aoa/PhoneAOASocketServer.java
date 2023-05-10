@@ -9,6 +9,7 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 /**
  * 负责转发scrcpy-server.jar的数据给AOA Host端
@@ -52,6 +53,15 @@ public class PhoneAOASocketServer extends WebSocketServer {
     }
 
     @Override
+    public void onMessage(WebSocket conn, ByteBuffer bytes) {
+        byte[] buf = new byte[bytes.remaining()];
+        bytes.get(buf);
+        if (mOnWebSocketServerListener != null) {
+            mOnWebSocketServerListener.onReceiveByteData(buf);
+        }
+    }
+
+    @Override
     public void onError(WebSocket conn, Exception ex) {
         if (mOnWebSocketServerListener != null) {
             LogUtil.e(TAG, ex.getMessage());
@@ -66,7 +76,7 @@ public class PhoneAOASocketServer extends WebSocketServer {
 
     public void sendMessage(String message) {
         LogUtil.d(TAG, "message=" + message);
-        if (mWebSocket != null && !TextUtils.isEmpty(message)) {
+        if (mWebSocket != null && !TextUtils.isEmpty(message) && mWebSocket.isOpen()) {
             mWebSocket.send(message);
         }
     }
@@ -83,5 +93,7 @@ public class PhoneAOASocketServer extends WebSocketServer {
         void onClose(String reason);
 
         void onError(String errorMessage);
+
+        void onReceiveByteData(byte[] data);
     }
 }

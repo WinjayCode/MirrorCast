@@ -203,6 +203,22 @@ public class AOAAccessoryManager {
         }
     }
 
+    public void sendAOAByte(byte[] data) {
+        if (mOutputStream != null) {
+            LogUtil.d(TAG, "data.length=" + data.length);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mOutputStream.write(data);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+    }
+
     private void closeAccessory() {
         LogUtil.d(TAG);
         if (mAccessory != null) {

@@ -135,6 +135,13 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
     }
 
     @Override
+    public void onReceiveByteData(byte[] data) {
+        LogUtil.d(TAG, "data.length=" + data.length);
+        // 转发scrcpy-server.jar的录屏数据给AOA Host端
+        AOAAccessoryManager.getInstance().sendAOAByte(data);
+    }
+
+    @Override
     public void onClose(String reason) {
         LogUtil.d(TAG, "reason=" + reason);
     }

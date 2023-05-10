@@ -124,7 +124,7 @@ public class AOAHostManager {
             if (STORAGE_INTERFACE_CLASS == usbInter.getInterfaceClass()
                     && STORAGE_INTERFACE_SUBCLASS == usbInter.getInterfaceSubclass()
                     && STORAGE_INTERFACE_PROTOCOL == usbInter.getInterfaceProtocol()) {
-                LogUtil.d(TAG, "this device is mass storage 2");
+                LogUtil.d(TAG, "this device is mass storage");
                 return true;
             }
         }
@@ -139,10 +139,13 @@ public class AOAHostManager {
     }
 
     private void unregisterUsbReceiver() {
-        context.unregisterReceiver(usbReceiver);
+        if (usbReceiver != null) {
+            context.unregisterReceiver(usbReceiver);
+            usbReceiver = null;
+        }
     }
 
-    private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -192,6 +195,10 @@ public class AOAHostManager {
                     if (detachedDevice != null && isAccessory(detachedDevice)) {
                         LogUtil.d(TAG, "device had been detached");
                         stop();
+
+                        if (mAOAHostListener != null) {
+                            mAOAHostListener.onDetached();
+                        }
                     }
                     break;
             }
@@ -319,11 +326,13 @@ public class AOAHostManager {
                 int length = 0;
                 byte[] buffer = new byte[16384];
                 while (length >= 0) {
-                    length = usbDeviceConnection.bulkTransfer(inEndpoint, buffer, buffer.length, 0);
+                    if (usbDeviceConnection != null) {
+                        length = usbDeviceConnection.bulkTransfer(inEndpoint, buffer, buffer.length, 0);
 
-                    if (length > 0) {
-                        if (mAOAHostListener != null) {
-                            mAOAHostListener.onReceivedData(buffer, length);
+                        if (length > 0) {
+                            if (mAOAHostListener != null) {
+                                mAOAHostListener.onReceivedData(buffer, length);
+                            }
                         }
                     }
                 }
@@ -354,6 +363,8 @@ public class AOAHostManager {
         void connectSucceed(UsbDevice device, UsbDeviceConnection usbDeviceConnection);
 
         void onReceivedData(byte[] data, int length);
+
+        void onDetached();
     }
 
     public void setAOAHostListener(AOAHostListener aOAHostListener) {
