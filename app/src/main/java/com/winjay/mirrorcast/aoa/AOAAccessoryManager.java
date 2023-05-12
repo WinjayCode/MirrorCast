@@ -7,8 +7,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 
+import com.google.protobuf.ByteString;
+import com.winjay.mirrorcast.protobuf.TestProto;
 import com.winjay.mirrorcast.util.LogUtil;
 
 import java.io.FileDescriptor;
@@ -69,10 +72,13 @@ public class AOAAccessoryManager {
     }
 
     private void unregisterReceiver() {
-        context.unregisterReceiver(mUsbReceiver);
+        if (mUsbReceiver != null) {
+            context.unregisterReceiver(mUsbReceiver);
+            mUsbReceiver = null;
+        }
     }
 
-    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -114,7 +120,13 @@ public class AOAAccessoryManager {
                     LogUtil.d(TAG, "USB_ACCESSORY_DETACHED " + detachedAccessory);
                     if (detachedAccessory != null) {
                         mAccessory = detachedAccessory;
-                        closeAccessory();
+
+                        LogUtil.d(TAG, "device had been detached");
+                        stop();
+
+                        if (mAOAAccessoryListener != null) {
+                            mAOAAccessoryListener.onDetached();
+                        }
                     }
                     break;
             }
@@ -188,34 +200,48 @@ public class AOAAccessoryManager {
     }
 
     public void sendAOAMessage(String msg) {
-        if (mOutputStream != null) {
-            LogUtil.d(TAG, "msg=" + msg);
+        LogUtil.d(TAG, "msg=" + msg);
+        if (Looper.getMainLooper() == Looper.myLooper()) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        mOutputStream.write(msg.getBytes());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    sendData(msg.getBytes());
                 }
             }).start();
+        } else {
+            sendData(msg.getBytes());
         }
     }
 
     public void sendAOAByte(byte[] data) {
-        if (mOutputStream != null) {
-            LogUtil.d(TAG, "data.length=" + data.length);
+        if (Looper.getMainLooper() == Looper.myLooper()) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        mOutputStream.write(data);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    sendData(data);
                 }
             }).start();
+        } else {
+            sendData(data);
+        }
+    }
+
+    private void sendData(byte[] data) {
+        LogUtil.d(TAG, "data.length=" + data.length);
+
+        // protobuf
+//        TestProto.Test.Builder builder = TestProto.Test.newBuilder();
+//        builder.setTestBytes(ByteString.copyFrom(data));
+//        TestProto.Test test = builder.build();
+//        byte[] data2 = test.toByteArray();
+//        LogUtil.d(TAG, "TestProto.length=" + data2.length);
+
+        if (mOutputStream != null) {
+            try {
+                mOutputStream.write(data);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -250,6 +276,8 @@ public class AOAAccessoryManager {
         void connectSucceed();
 
         void onReceivedData(byte[] data, int length);
+
+        void onDetached();
     }
 
     public void setAOAAccessoryListener(AOAAccessoryListener aOAAccessoryListener) {

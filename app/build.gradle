@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.google.protobuf'
 }
 
 evaluationDependsOn(':server')
@@ -29,6 +30,9 @@ android {
             jniLibs.srcDirs = ['libs']
             jni {
                 srcDirs 'src/main/jni'
+            }
+            proto {
+                srcDir 'src/main/proto'
             }
         }
     }
@@ -69,6 +73,26 @@ dependencies {
 
     implementation "org.java-websocket:Java-WebSocket:1.5.3"
     implementation 'pub.devrel:easypermissions:3.0.0'
+    implementation "com.google.protobuf:protobuf-lite:3.0.0"
 
     implementation project(':adblib')
+}
+
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.0.0'
+    }
+    plugins {
+        javalite {
+            artifact = 'com.google.protobuf:protoc-gen-javalite:3.0.0'
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                javalite {}
+            }
+        }
+    }
 }

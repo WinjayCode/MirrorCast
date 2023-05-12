@@ -11,8 +11,11 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
+import android.os.Looper;
 import android.text.TextUtils;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.winjay.mirrorcast.protobuf.TestProto;
 import com.winjay.mirrorcast.util.LogUtil;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -328,10 +331,33 @@ public class AOAHostManager {
                 while (length >= 0) {
                     if (usbDeviceConnection != null) {
                         length = usbDeviceConnection.bulkTransfer(inEndpoint, buffer, buffer.length, 0);
+                        LogUtil.d(TAG, "length=" + length);
+
+                        // protobuf
+//                        if (length > 0) {
+//                            try {
+//                                byte[] validData = new byte[length];
+//                                System.arraycopy(buffer, 0, validData, 0, length);
+//                                TestProto.Test test = TestProto.Test.parseFrom(validData);
+//                                byte[] bytes = test.getTestBytes().toByteArray();
+//                                LogUtil.d(TAG, "bytes.length=" + bytes.length);
+//                                if (bytes.length > 0) {
+//                                    if (mAOAHostListener != null) {
+//                                        mAOAHostListener.onReceivedData(bytes, bytes.length);
+//                                    }
+//                                }
+//                            } catch (InvalidProtocolBufferException e) {
+//                                LogUtil.e(TAG, e.getMessage());
+//                                e.printStackTrace();
+//                            }
+//                        }
+
 
                         if (length > 0) {
                             if (mAOAHostListener != null) {
-                                mAOAHostListener.onReceivedData(buffer, length);
+                                byte[] validData = new byte[length];
+                                System.arraycopy(buffer, 0, validData, 0, length);
+                                mAOAHostListener.onReceivedData(validData, length);
                             }
                         }
                     }
@@ -343,15 +369,22 @@ public class AOAHostManager {
     public void sendAOAMessage(String msg) {
         LogUtil.d(TAG, "msg=" + msg);
         if (usbDeviceConnection != null && usbInterface != null) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    byte[] data = msg.getBytes();
-                    int result = usbDeviceConnection.bulkTransfer(outEndpoint, data, data.length, 0);
-                    LogUtil.d(TAG, "host send result=" + result);
-                }
-            }).start();
+            if (Looper.getMainLooper() == Looper.myLooper()) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendData(msg.getBytes());
+                    }
+                }).start();
+            } else {
+                sendData(msg.getBytes());
+            }
         }
+    }
+
+    private void sendData(byte[] data) {
+        int result = usbDeviceConnection.bulkTransfer(outEndpoint, data, data.length, 0);
+        LogUtil.d(TAG, "host send result=" + result);
     }
 
     public void stop() {

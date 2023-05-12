@@ -1,10 +1,8 @@
 package com.winjay.mirrorcast.aoa;
 
-import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbInterface;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -47,7 +45,6 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     private UsbDeviceConnection usbDeviceConnection;
     private UsbInterface usbInterface;
 
-    private int[] screenSize = new int[2];
     private int maxSize;
     private ScreenDecoder mScreenDecoder;
     private float phoneMainScreenWidthRatio;
@@ -79,7 +76,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     }
 
     private void initView() {
-        screenSize = DisplayUtil.getScreenSize(this);
+        int[] screenSize = DisplayUtil.getScreenSize(this);
         maxSize = screenSize[1];
 
         binding.aoaSendBtn.setOnClickListener(this);
@@ -176,7 +173,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 //        LogUtil.d(TAG, "startMirrorCastSucceed=" + startMirrorCastSucceed + ", isStartMirrorCast=" + isStartMirrorCast);
         if (startMirrorCastSucceed && isStartMirrorCast) {
             if (mScreenDecoder != null) {
-//                LogUtil.d(TAG, "decoding!");
+                LogUtil.d(TAG, "decoding...");
                 // 解析投屏视频数据
                 mScreenDecoder.decodeData(data);
             }
@@ -265,6 +262,33 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
         return result;
     }
 
+    private void startMirrorCast() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (usbInterface == null) {
+                    usbInterface = findAdbInterface(usbDevice);
+                }
+                if (ADBCommands.getInstance(VehicleAOAActivity.this).startMirrorCast(usbDeviceConnection, usbInterface, "localhost",
+                        Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, 0, maxSize, "0")) {
+                    LogUtil.d(TAG, "scrcpy start success.");
+                    startMirrorCastSucceed = true;
+
+                    Message m = Message.obtain(mHandler, MESSAGE_STR);
+                    m.obj = "投屏启动成功!";
+                    mHandler.sendMessage(m);
+                } else {
+                    LogUtil.e(TAG, "scrcpy start failure!");
+                    startMirrorCastSucceed = false;
+
+                    Message m = Message.obtain(mHandler, MESSAGE_STR);
+                    m.obj = "投屏启动失败!";
+                    mHandler.sendMessage(m);
+                }
+            }
+        }).start();
+    }
+
     // searches for an adb interface on the given USB device
     private UsbInterface findAdbInterface(UsbDevice device) {
         int count = device.getInterfaceCount();
@@ -276,36 +300,5 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
             }
         }
         return null;
-    }
-
-    private void startMirrorCast() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                UsbManager mManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-                UsbDeviceConnection connection = mManager.openDevice(usbDevice);
-                usbInterface = findAdbInterface(usbDevice);
-                if (connection != null) {
-                    if (connection.claimInterface(usbInterface, true)) {
-                        if (ADBCommands.getInstance(VehicleAOAActivity.this).startMirrorCast(connection, usbInterface, "localhost",
-                                Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, 0, maxSize, "0")) {
-                            LogUtil.d(TAG, "scrcpy start success.");
-                            startMirrorCastSucceed = true;
-
-                            Message m = Message.obtain(mHandler, MESSAGE_STR);
-                            m.obj = "投屏启动成功!";
-                            mHandler.sendMessage(m);
-                        } else {
-                            LogUtil.e(TAG, "scrcpy start failure!");
-                            startMirrorCastSucceed = false;
-
-                            Message m = Message.obtain(mHandler, MESSAGE_STR);
-                            m.obj = "投屏启动失败!";
-                            mHandler.sendMessage(m);
-                        }
-                    }
-                }
-            }
-        }).start();
     }
 }

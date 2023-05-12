@@ -113,6 +113,11 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         phoneAOASocketServer.sendMessage(message);
     }
 
+    @Override
+    public void onDetached() {
+        finish();
+    }
+
     private void notifyScrcpyServerJarIsExist() {
         int isExist = 0;
         File file = new File("data/local/tmp/scrcpy-server.jar");
@@ -122,6 +127,7 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         AOAAccessoryManager.getInstance().sendAOAMessage(Constants.APP_REPLY_CHECK_SCRCPY_SERVER_JAR + Constants.COMMAND_SPLIT + isExist);
     }
 
+    ///////////websocketserver///////////
     @Override
     public void onOpen() {
         LogUtil.d(TAG);
@@ -130,13 +136,13 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
     @Override
     public void onMessage(String message) {
         LogUtil.d(TAG, "message=" + message);
-        // 转发scrcpy-server.jar的数据给AOA Host端
+        // 转发scrcpy-server.jar的消息数据给AOA Host端
         AOAAccessoryManager.getInstance().sendAOAMessage(message);
     }
 
     @Override
     public void onReceiveByteData(byte[] data) {
-        LogUtil.d(TAG, "data.length=" + data.length);
+        LogUtil.d(TAG, "encode data.length=" + data.length);
         // 转发scrcpy-server.jar的录屏数据给AOA Host端
         AOAAccessoryManager.getInstance().sendAOAByte(data);
     }

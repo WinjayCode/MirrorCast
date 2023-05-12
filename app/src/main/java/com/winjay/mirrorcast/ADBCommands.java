@@ -46,6 +46,8 @@ public class ADBCommands {
     private AdbStream adbStream = null;
     private AdbCrypto adbCrypto;
 
+    private boolean isPushFile = false;
+
     private ADBCommands(Context context) {
         mContext = context;
         setupCrypto2();
@@ -179,6 +181,7 @@ public class ADBCommands {
             e.printStackTrace();
         }
         executor.shutdown();
+        isPushFile = result;
         LogUtil.d(TAG, "result=" + result);
         return result;
     }
@@ -189,7 +192,6 @@ public class ADBCommands {
             return false;
         }
         try {
-//            adbConnection.open("shell:exec date");
             adbStream = adbConnection.open("shell:");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -298,7 +300,6 @@ public class ADBCommands {
         }
 
         try {
-//            adbConnection.open("shell:exec date");
             adbStream = adbConnection.open("shell:");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -308,9 +309,14 @@ public class ADBCommands {
             return false;
         }
         try {
-            adbStream.write(" " + '\n');
-            adbStream.write(" cd /data/local/tmp " + '\n');
-            adbStream.write(command.toString() + '\n');
+            if (isPushFile) {
+                adbStream.write(" " + '\n');
+                adbStream.write(command.toString() + '\n');
+            } else {
+                adbStream.write(" " + '\n');
+                adbStream.write(" cd /data/local/tmp " + '\n');
+                adbStream.write(command.toString() + '\n');
+            }
 //            adbStream.close();
             return true;
         } catch (IOException | InterruptedException e) {
