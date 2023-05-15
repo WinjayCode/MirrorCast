@@ -97,6 +97,23 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                 return true;
             }
         });
+
+        /*binding.phoneMainScreenGl.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                String mockEvent = Constants.SCRCPY_COMMAND_MOTION_EVENT
+                        + Constants.COMMAND_SPLIT
+                        + event.getAction()
+                        + Constants.COMMAND_SPLIT
+                        + (int) (event.getX() * phoneMainScreenWidthRatio)
+                        + Constants.COMMAND_SPLIT
+                        + (int) (event.getY() * phoneMainScreenHeightRatio);
+                LogUtil.d(TAG, "mirror screen event=" + mockEvent);
+                // 发送给手机AOAAccessory，手机AOAAccessory再发送给手机scrcpy的websocketclient端
+                AOAHostManager.getInstance().sendAOAMessage(mockEvent);
+                return true;
+            }
+        });*/
     }
 
     @Override
@@ -156,6 +173,44 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                         }
                     });
                     binding.phoneMainScreenSv.setVisibility(View.VISIBLE);
+
+
+                    /*RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) binding.phoneMainScreenGl.getLayoutParams();
+                    layoutParams.width = msg.arg1;
+                    layoutParams.height = msg.arg2;
+                    binding.phoneMainScreenGl.setLayoutParams(layoutParams);
+                    *//*binding.phoneMainScreenGl.getHolder().addCallback(new SurfaceHolder.Callback() {
+                        @Override
+                        public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                        }
+
+                        @Override
+                        public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+                            if (binding.phoneMainScreenGl.getVisibility() == View.VISIBLE) {
+                                mScreenDecoder = new ScreenDecoder();
+                                mScreenDecoder.startDecode(binding.phoneMainScreenGl.getHolder().getSurface(), msg.arg1, msg.arg2);
+                                isStartMirrorCast = true;
+                            }
+                        }
+
+                        @Override
+                        public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+
+                        }
+                    });*//*
+                    binding.phoneMainScreenGl.setVisibility(View.VISIBLE);
+                    LogUtil.d(TAG, "1111");
+
+                    HandlerManager.getInstance().postDelayedOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            LogUtil.d(TAG, "2222");
+                            mScreenDecoder = new ScreenDecoder();
+                            mScreenDecoder.startDecode(binding.phoneMainScreenGl.getSurface(), msg.arg1, msg.arg2);
+                            isStartMirrorCast = true;
+                        }
+                    }, 500);*/
+
                     break;
             }
         }
@@ -173,7 +228,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 //        LogUtil.d(TAG, "startMirrorCastSucceed=" + startMirrorCastSucceed + ", isStartMirrorCast=" + isStartMirrorCast);
         if (startMirrorCastSucceed && isStartMirrorCast) {
             if (mScreenDecoder != null) {
-                LogUtil.d(TAG, "decoding...");
+//                LogUtil.d(TAG, "decoding...");
                 // 解析投屏视频数据
                 mScreenDecoder.decodeData(data);
             }

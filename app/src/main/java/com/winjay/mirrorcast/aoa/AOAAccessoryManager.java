@@ -230,11 +230,18 @@ public class AOAAccessoryManager {
         LogUtil.d(TAG, "data.length=" + data.length);
 
         // protobuf
-//        TestProto.Test.Builder builder = TestProto.Test.newBuilder();
-//        builder.setTestBytes(ByteString.copyFrom(data));
-//        TestProto.Test test = builder.build();
-//        byte[] data2 = test.toByteArray();
-//        LogUtil.d(TAG, "TestProto.length=" + data2.length);
+        /*TestProto.Test.Builder builder = TestProto.Test.newBuilder();
+        builder.setTestBytes(ByteString.copyFrom(data));
+        TestProto.Test test = builder.build();
+        byte[] data2 = test.toByteArray();
+        LogUtil.d(TAG, "TestProto.length=" + data2.length);
+        if (mOutputStream != null) {
+            try {
+                mOutputStream.write(data2);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }*/
 
         if (mOutputStream != null) {
             try {

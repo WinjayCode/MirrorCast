@@ -327,30 +327,30 @@ public class AOAHostManager {
             @Override
             public void run() {
                 int length = 0;
-                byte[] buffer = new byte[16384];
+                byte[] buffer = new byte[163840];
                 while (length >= 0) {
                     if (usbDeviceConnection != null) {
                         length = usbDeviceConnection.bulkTransfer(inEndpoint, buffer, buffer.length, 0);
-                        LogUtil.d(TAG, "length=" + length);
+//                        LogUtil.d(TAG, "length=" + length);
 
                         // protobuf
-//                        if (length > 0) {
-//                            try {
-//                                byte[] validData = new byte[length];
-//                                System.arraycopy(buffer, 0, validData, 0, length);
-//                                TestProto.Test test = TestProto.Test.parseFrom(validData);
-//                                byte[] bytes = test.getTestBytes().toByteArray();
-//                                LogUtil.d(TAG, "bytes.length=" + bytes.length);
-//                                if (bytes.length > 0) {
-//                                    if (mAOAHostListener != null) {
-//                                        mAOAHostListener.onReceivedData(bytes, bytes.length);
-//                                    }
-//                                }
-//                            } catch (InvalidProtocolBufferException e) {
-//                                LogUtil.e(TAG, e.getMessage());
-//                                e.printStackTrace();
-//                            }
-//                        }
+                        /*if (length > 0) {
+                            try {
+                                byte[] validData = new byte[length];
+                                System.arraycopy(buffer, 0, validData, 0, length);
+                                TestProto.Test test = TestProto.Test.parseFrom(validData);
+                                byte[] bytes = test.getTestBytes().toByteArray();
+                                LogUtil.d(TAG, "bytes.length=" + bytes.length);
+                                if (bytes.length > 0) {
+                                    if (mAOAHostListener != null) {
+                                        mAOAHostListener.onReceivedData(bytes, bytes.length);
+                                    }
+                                }
+                            } catch (InvalidProtocolBufferException e) {
+                                LogUtil.e(TAG, e.getMessage());
+                                e.printStackTrace();
+                            }
+                        }*/
 
 
                         if (length > 0) {

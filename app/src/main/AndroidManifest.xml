@@ -113,8 +113,8 @@
         <!-- aoa -->
         <activity
             android:name=".aoa.VehicleAOAActivity"
-            android:launchMode="singleTask"
-            android:exported="true" />
+            android:exported="true"
+            android:launchMode="singleTask" />
 
         <activity
             android:name=".aoa.PhoneAOAActivity"
@@ -128,6 +128,11 @@
                 android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
                 android:resource="@xml/accessory_filter" />
         </activity>
+
+        <service
+            android:name=".aoa.PhoneAOAService"
+            android:enabled="true"
+            android:exported="true" />
         <!-- aoa -->
 
         <!-- server -->

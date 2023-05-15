@@ -1,7 +1,12 @@
 package com.winjay.mirrorcast.aoa;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
@@ -15,21 +20,20 @@ import com.winjay.mirrorcast.databinding.ActivityPhoneAoaBinding;
 import com.winjay.mirrorcast.util.LogUtil;
 
 import java.io.File;
-import java.net.InetSocketAddress;
 
 /**
  * @author F2848777
  * @date 2023-04-10
  */
 public class PhoneAOAActivity extends BaseActivity implements View.OnClickListener,
-        AOAAccessoryManager.AOAAccessoryListener, PhoneAOASocketServer.OnWebSocketServerListener {
+        AOAAccessoryManager.AOAAccessoryListener {
     private static final String TAG = PhoneAOAActivity.class.getSimpleName();
 
     private ActivityPhoneAoaBinding binding;
 
     private static final int MESSAGE_STR = 1;
 
-    private PhoneAOASocketServer phoneAOASocketServer;
+    private PhoneAOAService.MyBinder myBinder;
 
     @Override
     protected View viewBinding() {
@@ -44,13 +48,24 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         initView();
 
-        phoneAOASocketServer = new PhoneAOASocketServer(new InetSocketAddress(Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT));
-        phoneAOASocketServer.setOnWebSocketServerListener(this);
-        phoneAOASocketServer.start();
+        Intent intent = new Intent(this, PhoneAOAService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
         AOAAccessoryManager.getInstance().setAOAAccessoryListener(this);
         AOAAccessoryManager.getInstance().start(this);
     }
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            myBinder = (PhoneAOAService.MyBinder) service;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            myBinder = null;
+        }
+    };
 
     private void initView() {
         binding.aoaSendBtn.setOnClickListener(this);
@@ -73,11 +88,7 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         super.onDestroy();
         LogUtil.d(TAG);
 
-        try {
-            phoneAOASocketServer.stop();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        unbindService(connection);
 
         AOAAccessoryManager.getInstance().stop();
     }
@@ -110,7 +121,7 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         mHandler.sendMessage(m);
 
         // 转发AOA Host端的数据给scrcpy-server.jar
-        phoneAOASocketServer.sendMessage(message);
+        myBinder.getService().sendMessage(message);
     }
 
     @Override
@@ -125,35 +136,5 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
             isExist = 1;
         }
         AOAAccessoryManager.getInstance().sendAOAMessage(Constants.APP_REPLY_CHECK_SCRCPY_SERVER_JAR + Constants.COMMAND_SPLIT + isExist);
-    }
-
-    ///////////websocketserver///////////
-    @Override
-    public void onOpen() {
-        LogUtil.d(TAG);
-    }
-
-    @Override
-    public void onMessage(String message) {
-        LogUtil.d(TAG, "message=" + message);
-        // 转发scrcpy-server.jar的消息数据给AOA Host端
-        AOAAccessoryManager.getInstance().sendAOAMessage(message);
-    }
-
-    @Override
-    public void onReceiveByteData(byte[] data) {
-        LogUtil.d(TAG, "encode data.length=" + data.length);
-        // 转发scrcpy-server.jar的录屏数据给AOA Host端
-        AOAAccessoryManager.getInstance().sendAOAByte(data);
-    }
-
-    @Override
-    public void onClose(String reason) {
-        LogUtil.d(TAG, "reason=" + reason);
-    }
-
-    @Override
-    public void onError(String errorMessage) {
-        LogUtil.e(TAG, "errorMessage=" + errorMessage);
     }
 }

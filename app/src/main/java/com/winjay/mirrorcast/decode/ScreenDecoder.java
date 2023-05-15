@@ -22,7 +22,7 @@ public class ScreenDecoder {
             mMediaCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
             MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, videoWidth, videoHeight);
             // 码率：每秒传输数据量大小
-            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, videoWidth * videoHeight / 10);
+            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, videoWidth * videoHeight / 2);
             // 帧率：帧/每秒
             mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
             mediaFormat.setInteger(MediaFormat.KEY_MAX_FPS_TO_ENCODER, 30);

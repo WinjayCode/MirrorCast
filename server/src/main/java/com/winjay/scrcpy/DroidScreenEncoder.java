@@ -113,7 +113,7 @@ public class DroidScreenEncoder implements Device.RotationListener {
                 Ln.i("videoRect.width=" + videoRect.width() + ", videoRect.height=" + videoRect.height());
                 setSize(format, videoRect.width(), videoRect.height());
 
-                format.setInteger(MediaFormat.KEY_BIT_RATE, videoRect.width() * videoRect.height() / 10);
+                format.setInteger(MediaFormat.KEY_BIT_RATE, videoRect.width() * videoRect.height() / 2);
 
                 Surface surface = null;
                 try {
