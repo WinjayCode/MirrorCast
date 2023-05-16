@@ -133,23 +133,6 @@ public class WIFIDirectActivity extends BaseActivity {
                 AppApplication.destDeviceIp = wifiP2pInfo.groupOwnerAddress.getHostAddress();
                 AppSocketManager.getInstance().setIsWiFiDirectGroupOwner(false);
             }
-
-//            if (!wifiP2pInfo.isGroupOwner) {
-//                AppApplication.destDeviceIp = wifiP2pInfo.groupOwnerAddress.getHostAddress();
-//            }
-//
-//
-//            if (wifiP2pInfo.groupFormed && !wifiP2pInfo.isGroupOwner) {
-//                InetAddress inetAddress = NetUtil.getP2PInetAddress();
-//                if (inetAddress != null) {
-//                    LogUtil.d(TAG, "show gc ip address:" + inetAddress.getHostAddress());
-//                    binding.gcInfo.setText(binding.gcInfo.getText().toString()
-//                            + "群员IP地址："
-//                            + inetAddress.getHostAddress() + "\n");
-//                }
-//                // send ip to GO
-//                sendGCIP2GO();
-//            }
         }
 
         @Override
@@ -189,11 +172,6 @@ public class WIFIDirectActivity extends BaseActivity {
             LogUtil.d(TAG);
         }
     };
-
-    private void sendGCIP2GO() {
-        LogUtil.d(TAG);
-//        new ClientThread(mWifiP2pInfo.groupOwnerAddress.getHostAddress()).start();
-    }
 
     @Override
     protected View viewBinding() {

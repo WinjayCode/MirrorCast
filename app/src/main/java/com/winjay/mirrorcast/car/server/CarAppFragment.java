@@ -2,6 +2,7 @@ package com.winjay.mirrorcast.car.server;
 
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.view.LayoutInflater;
@@ -54,7 +55,7 @@ public class CarAppFragment extends BaseFragment<FragmentCarAppBinding> {
         mAppListAdapter.setOnItemClickListener(new AppListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(AppBean appBean) {
-                int virtualDisplay = DisplayUtil.createVirtualDisplay();
+                int virtualDisplay = DisplayUtil.createVirtualDisplay(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                 AppSocketManager.getInstance().sendMessage(
                         Constants.APP_COMMAND_PHONE_APP_MIRROR_CAST
                                 + Constants.COMMAND_SPLIT

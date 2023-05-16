@@ -384,7 +384,7 @@ public class AOAHostManager {
 
     private void sendData(byte[] data) {
         int result = usbDeviceConnection.bulkTransfer(outEndpoint, data, data.length, 0);
-        LogUtil.d(TAG, "host send result=" + result);
+//        LogUtil.d(TAG, "host send result=" + result);
     }
 
     public void stop() {

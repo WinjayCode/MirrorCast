@@ -6,11 +6,15 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.winjay.mirrorcast.AppApplication;
 import com.winjay.mirrorcast.Constants;
+import com.winjay.mirrorcast.car.server.CarLauncherActivity;
+import com.winjay.mirrorcast.car.server.TipsActivity;
 import com.winjay.mirrorcast.util.LogUtil;
 
 import java.net.InetSocketAddress;
@@ -23,6 +27,7 @@ public class PhoneAOAService extends Service implements PhoneAOASocketServer.OnW
     private static final String TAG = PhoneAOAService.class.getSimpleName();
 
     private PhoneAOASocketServer phoneAOASocketServer;
+    private String displayId;
 
     @Nullable
     @Override
@@ -43,13 +48,9 @@ public class PhoneAOAService extends Service implements PhoneAOASocketServer.OnW
         LogUtil.d(TAG);
 
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        nm.createNotificationChannel(new NotificationChannel("1", "PhoneAOAService", NotificationManager.IMPORTANCE_DEFAULT));
+        nm.createNotificationChannel(new NotificationChannel("1", TAG, NotificationManager.IMPORTANCE_DEFAULT));
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
         startForeground(1, builder.build());
-
-        phoneAOASocketServer = new PhoneAOASocketServer(new InetSocketAddress(Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT));
-        phoneAOASocketServer.setOnWebSocketServerListener(this);
-        phoneAOASocketServer.start();
     }
 
     @Override
@@ -64,13 +65,45 @@ public class PhoneAOAService extends Service implements PhoneAOASocketServer.OnW
         }
     }
 
+    public void setServerPort(int port) {
+        phoneAOASocketServer = new PhoneAOASocketServer(new InetSocketAddress(port));
+        phoneAOASocketServer.setOnWebSocketServerListener(this);
+        phoneAOASocketServer.start();
+    }
+
     public void sendMessage(String message) {
-        phoneAOASocketServer.sendMessage(message);
+        if (phoneAOASocketServer != null) {
+            phoneAOASocketServer.sendMessage(message);
+        }
+    }
+
+    public void setDisplayId(String displayId) {
+        this.displayId = displayId;
     }
 
     @Override
     public void onOpen() {
         LogUtil.d(TAG);
+        if (!TextUtils.isEmpty(displayId)) {
+            // 启动手机端car launcher到虚拟屏上
+            sendMessage(
+                    Constants.SCRCPY_COMMAND_START_PHONE_APP_MIRROR_CAST
+                            + Constants.COMMAND_SPLIT
+                            + getPackageName()
+                            + Constants.COMMAND_SPLIT
+                            + CarLauncherActivity.class.getName()
+                            + Constants.COMMAND_SPLIT
+                            + displayId);
+
+            // 手机端显示Tips页面
+            showTips();
+        }
+    }
+
+    private void showTips() {
+        Intent intent = new Intent(AppApplication.context, TipsActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        AppApplication.context.startActivity(intent);
     }
 
     @Override

@@ -1,21 +1,15 @@
 package com.winjay.mirrorcast.util;
 
-import android.app.ActivityOptions;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
-import android.media.MediaRouter;
-import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
-import android.view.Display;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
 import com.winjay.mirrorcast.AppApplication;
-import com.winjay.mirrorcast.Constants;
 
 import java.lang.reflect.Field;
 
@@ -111,13 +105,14 @@ public class DisplayUtil {
         try {
             LogUtil.d(TAG);
             DisplayManager displayManager = (DisplayManager) AppApplication.context.getSystemService(Context.DISPLAY_SERVICE);
+            // 默认竖屏时，后面的逻辑才正常，如果当前Activity是横屏，则这里的宽高就反了！
             int[] screenSize = getScreenSize(AppApplication.context);
             int flags = 139;
 //            int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION |
 //                    DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC |
 //                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR;
             VirtualDisplay display;
-            if (orientation == 0) {
+            if (orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
                 display = displayManager.createVirtualDisplay("app_mirror",
                         screenSize[1], screenSize[0], screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
                         flags);
@@ -150,28 +145,6 @@ public class DisplayUtil {
             e.printStackTrace();
         }
         return displayId;
-    }
-
-    public static int createVirtualDisplay() {
-        /*try {
-            LogUtil.d(TAG);
-            DisplayManager displayManager = (DisplayManager) AppApplication.context.getSystemService(Context.DISPLAY_SERVICE);
-            int[] screenSize = getScreenSize(AppApplication.context);
-            int flags = 139;
-            VirtualDisplay display = displayManager.createVirtualDisplay("app_mirror",
-                    screenSize[1], screenSize[0], screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
-                    flags);
-
-            int displayId = display.getDisplay().getDisplayId();
-            LogUtil.d(TAG, "virtual display ID=" + displayId);
-            return displayId;
-        } catch (Exception e) {
-            LogUtil.e(TAG, "createVirtualDisplay error " + e.getMessage());
-            e.printStackTrace();
-        }
-        return -1;*/
-
-        return createVirtualDisplay(0);
     }
 
     /*private void createVirtualDisplay() {

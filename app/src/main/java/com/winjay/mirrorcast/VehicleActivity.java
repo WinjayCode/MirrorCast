@@ -139,8 +139,6 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
                 serverIp = binding.ipEd.getText().toString();
             }
 
-//            new ClientThread(serverIp, true).start();
-
             intent.putExtra("serverIp", serverIp);
             startActivity(intent);
 

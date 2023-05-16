@@ -22,6 +22,10 @@ public class Constants {
      * Vehicle -> Phone App 手机显示Tips页面
      */
     public static final String APP_COMMAND_SHOW_TIPS = "APP_COMMAND_SHOW_TIPS";
+    /**
+     * Vehicle -> Phone App AOA有线连接时车机通知手机PhoneAOASocketServer需要监听的端口
+     */
+    public static final String APP_COMMAND_AOA_SERVER_PORT = "APP_COMMAND_AOA_SERVER_PORT";
 
     /**
      * Phone App -> Vehicle 告知车机启动手机主屏幕镜像投屏

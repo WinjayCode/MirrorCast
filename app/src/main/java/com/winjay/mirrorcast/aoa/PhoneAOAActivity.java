@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityPhoneAoaBinding;
+import com.winjay.mirrorcast.util.DisplayUtil;
 import com.winjay.mirrorcast.util.LogUtil;
 
 import java.io.File;
@@ -34,6 +35,9 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
     private static final int MESSAGE_STR = 1;
 
     private PhoneAOAService.MyBinder myBinder;
+
+    private boolean isAccessoryOpened = false;
+    private boolean isServiceConnected = false;
 
     @Override
     protected View viewBinding() {
@@ -55,10 +59,17 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         AOAAccessoryManager.getInstance().start(this);
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
+    private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            LogUtil.d(TAG);
             myBinder = (PhoneAOAService.MyBinder) service;
+
+            isServiceConnected = true;
+            if (isAccessoryOpened) {
+                // 通知车机端当前手机端设备data/local/tmp/目录下是否存在scrcpy-server.jar文件
+                notifyScrcpyServerJarIsExist();
+            }
         }
 
         @Override
@@ -107,8 +118,12 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
     @Override
     public void connectSucceed() {
         LogUtil.d(TAG);
-        // 通知车机端当前手机端设备data/local/tmp/目录下是否存在scrcpy-server.jar文件
-        notifyScrcpyServerJarIsExist();
+        isAccessoryOpened = true;
+
+        if (isServiceConnected) {
+            // 通知车机端当前手机端设备data/local/tmp/目录下是否存在scrcpy-server.jar文件
+            notifyScrcpyServerJarIsExist();
+        }
     }
 
     @Override
@@ -120,8 +135,32 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         m.obj = message;
         mHandler.sendMessage(m);
 
+        if (message.startsWith(Constants.APP_COMMAND_CREATE_VIRTUAL_DISPLAY)) {
+            String[] split = message.split(Constants.COMMAND_SPLIT);
+            int orientation = Integer.parseInt(split[1]);
+            int virtualDisplayId = DisplayUtil.createVirtualDisplay(orientation);
+            if (virtualDisplayId != -1) {
+                if (myBinder != null) {
+                    myBinder.getService().setDisplayId(String.valueOf(virtualDisplayId));
+                }
+                AOAAccessoryManager.getInstance().sendAOAMessage(Constants.APP_REPLY_VIRTUAL_DISPLAY_ID + Constants.COMMAND_SPLIT + virtualDisplayId);
+            }
+            return;
+        }
+
+        if (message.startsWith(Constants.APP_COMMAND_AOA_SERVER_PORT)) {
+            String[] split = message.split(Constants.COMMAND_SPLIT);
+            int port = Integer.parseInt(split[1]);
+            if (myBinder != null) {
+                myBinder.getService().setServerPort(port);
+            }
+            return;
+        }
+
         // 转发AOA Host端的数据给scrcpy-server.jar
-        myBinder.getService().sendMessage(message);
+        if (myBinder != null) {
+            myBinder.getService().sendMessage(message);
+        }
     }
 
     @Override

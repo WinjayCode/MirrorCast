@@ -45,7 +45,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     private UsbDeviceConnection usbDeviceConnection;
     private UsbInterface usbInterface;
 
-    private int maxSize;
+    private int[] screenSize = new int[2];
     private ScreenDecoder mScreenDecoder;
     private float phoneMainScreenWidthRatio;
     private float phoneMainScreenHeightRatio;
@@ -76,8 +76,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     }
 
     private void initView() {
-        int[] screenSize = DisplayUtil.getScreenSize(this);
-        maxSize = screenSize[1];
+        screenSize = DisplayUtil.getScreenSize(this);
 
         binding.aoaSendBtn.setOnClickListener(this);
 
@@ -97,23 +96,6 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                 return true;
             }
         });
-
-        /*binding.phoneMainScreenGl.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                String mockEvent = Constants.SCRCPY_COMMAND_MOTION_EVENT
-                        + Constants.COMMAND_SPLIT
-                        + event.getAction()
-                        + Constants.COMMAND_SPLIT
-                        + (int) (event.getX() * phoneMainScreenWidthRatio)
-                        + Constants.COMMAND_SPLIT
-                        + (int) (event.getY() * phoneMainScreenHeightRatio);
-                LogUtil.d(TAG, "mirror screen event=" + mockEvent);
-                // 发送给手机AOAAccessory，手机AOAAccessory再发送给手机scrcpy的websocketclient端
-                AOAHostManager.getInstance().sendAOAMessage(mockEvent);
-                return true;
-            }
-        });*/
     }
 
     @Override
@@ -173,44 +155,6 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                         }
                     });
                     binding.phoneMainScreenSv.setVisibility(View.VISIBLE);
-
-
-                    /*RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) binding.phoneMainScreenGl.getLayoutParams();
-                    layoutParams.width = msg.arg1;
-                    layoutParams.height = msg.arg2;
-                    binding.phoneMainScreenGl.setLayoutParams(layoutParams);
-                    *//*binding.phoneMainScreenGl.getHolder().addCallback(new SurfaceHolder.Callback() {
-                        @Override
-                        public void surfaceCreated(@NonNull SurfaceHolder holder) {
-                        }
-
-                        @Override
-                        public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-                            if (binding.phoneMainScreenGl.getVisibility() == View.VISIBLE) {
-                                mScreenDecoder = new ScreenDecoder();
-                                mScreenDecoder.startDecode(binding.phoneMainScreenGl.getHolder().getSurface(), msg.arg1, msg.arg2);
-                                isStartMirrorCast = true;
-                            }
-                        }
-
-                        @Override
-                        public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-
-                        }
-                    });*//*
-                    binding.phoneMainScreenGl.setVisibility(View.VISIBLE);
-                    LogUtil.d(TAG, "1111");
-
-                    HandlerManager.getInstance().postDelayedOnMainThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            LogUtil.d(TAG, "2222");
-                            mScreenDecoder = new ScreenDecoder();
-                            mScreenDecoder.startDecode(binding.phoneMainScreenGl.getSurface(), msg.arg1, msg.arg2);
-                            isStartMirrorCast = true;
-                        }
-                    }, 500);*/
-
                     break;
             }
         }
@@ -249,11 +193,26 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                 }
 
                 // 使用adb启动手机端scrcpy服务开始投屏
-                startMirrorCast();
+                startMirrorCast(Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, screenSize[1], "0");
+
+                // car launcher
+//                createCarLauncherVirtualDisplay();
             } else if (split[1].equals("1")) {
                 // 使用adb启动手机端scrcpy服务开始投屏
-                startMirrorCast();
+                startMirrorCast(Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, screenSize[1], "0");
+
+                // car launcher
+//                createCarLauncherVirtualDisplay();
             }
+            return;
+        }
+
+        // 开启手机端car launcher投屏
+        if (message.startsWith(Constants.APP_REPLY_VIRTUAL_DISPLAY_ID)) {
+            String[] split = message.split(Constants.COMMAND_SPLIT);
+            String displayId = split[1];
+            LogUtil.d(TAG, "displayId=" + displayId);
+            startMirrorCast(Constants.CAR_LAUNCHER_MIRROR_CAST_SERVER_PORT, Math.max(screenSize[0], screenSize[1]), displayId);
             return;
         }
 
@@ -317,7 +276,24 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
         return result;
     }
 
-    private void startMirrorCast() {
+    // searches for an adb interface on the given USB device
+    private UsbInterface findAdbInterface(UsbDevice device) {
+        int count = device.getInterfaceCount();
+        for (int i = 0; i < count; i++) {
+            UsbInterface intf = device.getInterface(i);
+            if (intf.getInterfaceClass() == 255 && intf.getInterfaceSubclass() == 66 &&
+                    intf.getInterfaceProtocol() == 1) {
+                return intf;
+            }
+        }
+        return null;
+    }
+
+    private void startMirrorCast(int serverPort, int maxSize, String displayId) {
+        LogUtil.d(TAG, "serverPort=" + serverPort + ", maxSize=" + maxSize + ", displayId=" + displayId);
+
+        AOAHostManager.getInstance().sendAOAMessage(Constants.APP_COMMAND_AOA_SERVER_PORT + Constants.COMMAND_SPLIT + serverPort);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -325,7 +301,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                     usbInterface = findAdbInterface(usbDevice);
                 }
                 if (ADBCommands.getInstance(VehicleAOAActivity.this).startMirrorCast(usbDeviceConnection, usbInterface, "localhost",
-                        Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, 0, maxSize, "0")) {
+                        serverPort, 0, maxSize, displayId)) {
                     LogUtil.d(TAG, "scrcpy start success.");
                     startMirrorCastSucceed = true;
 
@@ -344,16 +320,8 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
         }).start();
     }
 
-    // searches for an adb interface on the given USB device
-    private UsbInterface findAdbInterface(UsbDevice device) {
-        int count = device.getInterfaceCount();
-        for (int i = 0; i < count; i++) {
-            UsbInterface intf = device.getInterface(i);
-            if (intf.getInterfaceClass() == 255 && intf.getInterfaceSubclass() == 66 &&
-                    intf.getInterfaceProtocol() == 1) {
-                return intf;
-            }
-        }
-        return null;
+    private void createCarLauncherVirtualDisplay() {
+        AOAHostManager.getInstance().sendAOAMessage(Constants.APP_COMMAND_CREATE_VIRTUAL_DISPLAY + Constants.COMMAND_SPLIT + getRequestedOrientation());
     }
+
 }
