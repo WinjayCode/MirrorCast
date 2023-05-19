@@ -53,6 +53,12 @@ public class TipsActivity extends BaseActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        LogUtil.d(TAG);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         LogUtil.d(TAG);

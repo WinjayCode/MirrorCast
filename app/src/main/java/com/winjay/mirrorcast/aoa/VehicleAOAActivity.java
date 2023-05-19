@@ -1,5 +1,6 @@
 package com.winjay.mirrorcast.aoa;
 
+import android.content.pm.ActivityInfo;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbInterface;
@@ -17,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.winjay.mirrorcast.ADBCommands;
+import com.winjay.mirrorcast.AppApplication;
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityVehicleAoaBinding;
@@ -53,6 +55,10 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     private boolean startMirrorCastSucceed = false;
     private boolean isStartMirrorCast = false;
 
+    private int adbCommandRetryCount = 0;
+
+    private int type;
+
     @Override
     public boolean isFullScreen() {
         return true;
@@ -67,6 +73,15 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         LogUtil.d(TAG);
+
+        type = getIntent().getIntExtra("type", 0);
+        if (type == 1) {
+
+        }
+        if (type == 2) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         super.onCreate(savedInstanceState);
         initView();
@@ -163,13 +178,15 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     @Override
     public void connectSucceed(UsbDevice usbDevice, UsbDeviceConnection usbDeviceConnection) {
         LogUtil.d(TAG);
+        AppApplication.connectType = Constants.CONNECT_TYPE_AOA;
+
         this.usbDevice = usbDevice;
         this.usbDeviceConnection = usbDeviceConnection;
     }
 
     @Override
     public void onReceivedData(byte[] data, int length) {
-//        LogUtil.d(TAG, "startMirrorCastSucceed=" + startMirrorCastSucceed + ", isStartMirrorCast=" + isStartMirrorCast);
+        LogUtil.d(TAG, "startMirrorCastSucceed=" + startMirrorCastSucceed + ", isStartMirrorCast=" + isStartMirrorCast);
         if (startMirrorCastSucceed && isStartMirrorCast) {
             if (mScreenDecoder != null) {
 //                LogUtil.d(TAG, "decoding...");
@@ -192,17 +209,23 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                     return;
                 }
 
-                // 使用adb启动手机端scrcpy服务开始投屏
-                startMirrorCast(Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, screenSize[1], "0");
-
-                // car launcher
-//                createCarLauncherVirtualDisplay();
+                if (type == 1) {
+                    // 使用adb启动手机端scrcpy服务开始投屏
+                    startMirrorCast(Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, screenSize[1], "0");
+                }
+                if (type == 2) {
+                    // car launcher
+                    createCarLauncherVirtualDisplay();
+                }
             } else if (split[1].equals("1")) {
-                // 使用adb启动手机端scrcpy服务开始投屏
-                startMirrorCast(Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, screenSize[1], "0");
-
-                // car launcher
-//                createCarLauncherVirtualDisplay();
+                if (type == 1) {
+                    // 使用adb启动手机端scrcpy服务开始投屏
+                    startMirrorCast(Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT, screenSize[1], "0");
+                }
+                if (type == 2) {
+                    // car launcher
+                    createCarLauncherVirtualDisplay();
+                }
             }
             return;
         }
@@ -294,6 +317,10 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 
         AOAHostManager.getInstance().sendAOAMessage(Constants.APP_COMMAND_AOA_SERVER_PORT + Constants.COMMAND_SPLIT + serverPort);
 
+        adbCommand(serverPort, maxSize, displayId);
+    }
+
+    private void adbCommand(int serverPort, int maxSize, String displayId) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -315,6 +342,15 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                     Message m = Message.obtain(mHandler, MESSAGE_STR);
                     m.obj = "投屏启动失败!";
                     mHandler.sendMessage(m);
+
+                    if (adbCommandRetryCount == 1) {
+                        // 目前先做一次重试
+                        return;
+                    }
+
+                    LogUtil.d(TAG, "resend adb command!");
+                    adbCommandRetryCount++;
+                    adbCommand(serverPort, maxSize, displayId);
                 }
             }
         }).start();
@@ -323,5 +359,4 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
     private void createCarLauncherVirtualDisplay() {
         AOAHostManager.getInstance().sendAOAMessage(Constants.APP_COMMAND_CREATE_VIRTUAL_DISPLAY + Constants.COMMAND_SPLIT + getRequestedOrientation());
     }
-
 }

@@ -52,11 +52,12 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 
     private void initView() {
         binding.btnWifiP2p.setOnClickListener(this);
-        binding.btnAoa.setOnClickListener(this);
         binding.btnStartRecord.setOnClickListener(this);
         binding.connectMirrorCastServer.setOnClickListener(this);
         binding.btnStartReceive.setOnClickListener(this);
         binding.btnCarHome.setOnClickListener(this);
+        binding.btnAoa.setOnClickListener(this);
+        binding.btnAoaCarLauncher.setOnClickListener(this);
     }
 
 
@@ -68,11 +69,6 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 
 //            Intent intent = new Intent(this, CarLauncherActivity.class);
 //            startActivity(intent);
-        }
-
-        // aoa
-        if (v == binding.btnAoa) {
-            startActivity(VehicleAOAActivity.class);
         }
 
         if (v == binding.btnStartRecord) {
@@ -153,6 +149,20 @@ public class VehicleActivity extends BaseActivity implements View.OnClickListene
 //            options.setLaunchDisplayId(2);
 //            Bundle optsBundle = options.toBundle();
 //            startActivity(intent, optsBundle);
+        }
+
+        // aoa test
+        if (v == binding.btnAoa) {
+            Intent intent = new Intent(this, VehicleAOAActivity.class);
+            intent.putExtra("type", 1);
+            startActivity(intent);
+        }
+
+        // aoa car launcher
+        if (v == binding.btnAoaCarLauncher) {
+            Intent intent = new Intent(this, VehicleAOAActivity.class);
+            intent.putExtra("type", 2);
+            startActivity(intent);
         }
     }
 

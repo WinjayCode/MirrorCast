@@ -13,6 +13,9 @@ public class AppApplication extends Application {
     public static Context context;
     private ActivityLifeCycle mActivityLifeCycle;
 
+    // 1.WIFI-Direct 2.AOA
+    public static int connectType = 0;
+
     public static String destDeviceIp;
 
     @Override

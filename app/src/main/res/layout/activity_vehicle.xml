@@ -15,11 +15,6 @@
         android:hint="192.168.49.1" />
 
     <Button
-        android:id="@+id/btn_aoa"
-        style="@style/BtnStyle"
-        android:text="AOA有线连接" />
-
-    <Button
         android:id="@+id/btn_start_record"
         style="@style/BtnStyle"
         android:text="开始投屏"
@@ -33,11 +28,21 @@
     <Button
         android:id="@+id/btn_start_receive"
         style="@style/BtnStyle"
-        android:text="接收投屏" />
+        android:text="WIFI直连投屏测试" />
 
     <Button
         android:id="@+id/btn_car_home"
         style="@style/BtnStyle"
-        android:text="Car Launcher"
+        android:text="WIFI直连CarLauncher"
         android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/btn_aoa"
+        style="@style/BtnStyle"
+        android:text="AOA有线投屏测试" />
+
+    <Button
+        android:id="@+id/btn_aoa_car_launcher"
+        style="@style/BtnStyle"
+        android:text="AOA有线CarLauncher" />
 </LinearLayout>

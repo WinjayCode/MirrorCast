@@ -66,4 +66,14 @@ public class Constants {
      * Scrcpy -> Vehicle Decoder 告诉解码器投屏宽高比信息
      */
     public static final String SCRCPY_REPLY_VIDEO_SIZE = "SCRCPY_REPLY_VIDEO_SIZE";
+
+
+    /**
+     * WIFI直连
+     */
+    public static final int CONNECT_TYPE_WIFI_DIRECT = 1;
+    /**
+     * AOA有线连接
+     */
+    public static final int CONNECT_TYPE_AOA = 2;
 }

@@ -33,10 +33,4 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"/>
-
-    <com.winjay.mirrorcast.opengl.RemoteDisplayGLView
-        android:id="@+id/phone_main_screen_gl"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"/>
 </RelativeLayout>

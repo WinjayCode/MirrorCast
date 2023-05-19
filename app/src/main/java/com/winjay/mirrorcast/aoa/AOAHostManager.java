@@ -327,6 +327,7 @@ public class AOAHostManager {
             @Override
             public void run() {
                 int length = 0;
+                // buffer大小决定了视频是否花屏卡顿
                 byte[] buffer = new byte[163840];
                 while (length >= 0) {
                     if (usbDeviceConnection != null) {

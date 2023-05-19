@@ -14,6 +14,7 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.winjay.mirrorcast.AppApplication;
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityPhoneAoaBinding;
@@ -118,6 +119,8 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
     @Override
     public void connectSucceed() {
         LogUtil.d(TAG);
+        AppApplication.connectType = Constants.CONNECT_TYPE_AOA;
+
         isAccessoryOpened = true;
 
         if (isServiceConnected) {
@@ -135,6 +138,15 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
         m.obj = message;
         mHandler.sendMessage(m);
 
+        if (message.startsWith(Constants.APP_COMMAND_AOA_SERVER_PORT)) {
+            String[] split = message.split(Constants.COMMAND_SPLIT);
+            int port = Integer.parseInt(split[1]);
+            if (myBinder != null) {
+                myBinder.getService().setServerPort(port);
+            }
+            return;
+        }
+
         if (message.startsWith(Constants.APP_COMMAND_CREATE_VIRTUAL_DISPLAY)) {
             String[] split = message.split(Constants.COMMAND_SPLIT);
             int orientation = Integer.parseInt(split[1]);
@@ -144,15 +156,6 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
                     myBinder.getService().setDisplayId(String.valueOf(virtualDisplayId));
                 }
                 AOAAccessoryManager.getInstance().sendAOAMessage(Constants.APP_REPLY_VIRTUAL_DISPLAY_ID + Constants.COMMAND_SPLIT + virtualDisplayId);
-            }
-            return;
-        }
-
-        if (message.startsWith(Constants.APP_COMMAND_AOA_SERVER_PORT)) {
-            String[] split = message.split(Constants.COMMAND_SPLIT);
-            int port = Integer.parseInt(split[1]);
-            if (myBinder != null) {
-                myBinder.getService().setServerPort(port);
             }
             return;
         }

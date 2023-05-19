@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.winjay.mirrorcast.AppApplication;
 import com.winjay.mirrorcast.app_socket.AppSocketManager;
 import com.winjay.mirrorcast.common.BaseFragment;
 import com.winjay.mirrorcast.Constants;
@@ -97,8 +98,16 @@ public class CarHomeTwoFragment extends BaseFragment<FragmentCarHomeTwoBinding> 
             @Override
             public void onItemClick(AppBean appBean) {
                 if (appBean.getAppName().equals("镜像投屏")) {
+                    if (AppApplication.connectType == Constants.CONNECT_TYPE_AOA) {
+                        toast("有线连接暂不支持该功能！");
+                        return;
+                    }
                     AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_PHONE_MAIN_SCREEN_MIRROR_CAST);
                 } else if (appBean.getAppName().equals("应用投屏")) {
+                    if (AppApplication.connectType == Constants.CONNECT_TYPE_AOA) {
+                        toast("有线连接暂不支持该功能！");
+                        return;
+                    }
                     FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                     transaction.add(R.id.content_rl, new CarAppFragment());
                     transaction.addToBackStack("CarAppFragment");

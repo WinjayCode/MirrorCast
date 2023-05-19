@@ -28,6 +28,7 @@ public class PhoneAOAService extends Service implements PhoneAOASocketServer.OnW
 
     private PhoneAOASocketServer phoneAOASocketServer;
     private String displayId;
+    private int serverPort;
 
     @Nullable
     @Override
@@ -66,6 +67,7 @@ public class PhoneAOAService extends Service implements PhoneAOASocketServer.OnW
     }
 
     public void setServerPort(int port) {
+        serverPort = port;
         phoneAOASocketServer = new PhoneAOASocketServer(new InetSocketAddress(port));
         phoneAOASocketServer.setOnWebSocketServerListener(this);
         phoneAOASocketServer.start();
@@ -84,7 +86,10 @@ public class PhoneAOAService extends Service implements PhoneAOASocketServer.OnW
     @Override
     public void onOpen() {
         LogUtil.d(TAG);
-        if (!TextUtils.isEmpty(displayId)) {
+        if (serverPort == Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT) {
+//            showTips();
+        }
+        if (serverPort == Constants.CAR_LAUNCHER_MIRROR_CAST_SERVER_PORT && !TextUtils.isEmpty(displayId)) {
             // 启动手机端car launcher到虚拟屏上
             sendMessage(
                     Constants.SCRCPY_COMMAND_START_PHONE_APP_MIRROR_CAST
