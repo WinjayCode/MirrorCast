@@ -14,6 +14,8 @@ public class AppSocketClient extends WebSocketClient {
 
     private AppSocketClientListener appSocketClientListener;
 
+    private AppSocketClientCloseListener mAppSocketClientCloseListener;
+
     private Timer timer;
     private TimerTask timerTask;
 
@@ -31,8 +33,14 @@ public class AppSocketClient extends WebSocketClient {
 
             @Override
             public void run() {
-                LogUtil.d(TAG, "send ping.");
-                send("ping");
+                if (isOpen()) {
+                    send("ping");
+                } else {
+                    LogUtil.d(TAG, "Websocket had been disconnected!");
+                    if (timer != null) {
+                        timer.cancel();
+                    }
+                }
             }
         };
         // 间隔30s
@@ -43,7 +51,7 @@ public class AppSocketClient extends WebSocketClient {
     public void onMessage(String message) {
         LogUtil.d(TAG, "message=" + message);
         if (message.equals("pong")) {
-            LogUtil.d(TAG, "receive pong.");
+//            LogUtil.d(TAG, "receive pong.");
             return;
         }
 
@@ -55,16 +63,22 @@ public class AppSocketClient extends WebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        LogUtil.d(TAG, "reason=" + reason);
+        LogUtil.d(TAG, "code=" + code + ", reason=" + reason + ", remote=" + remote);
+        if (timer != null) {
+            timer.cancel();
+        }
 
-        timer.cancel();
+        if (mAppSocketClientCloseListener!= null) {
+            mAppSocketClientCloseListener.onClose(code, reason, remote);
+        }
     }
 
     @Override
     public void onError(Exception ex) {
         LogUtil.e(TAG, ex.getMessage());
-
-        timer.cancel();
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 
     public void setAppSocketClientListener(AppSocketClientListener listener) {
@@ -73,5 +87,13 @@ public class AppSocketClient extends WebSocketClient {
 
     public interface AppSocketClientListener {
         void onMessage(String message);
+    }
+
+    public void setAppSocketClientCloseListener(AppSocketClientCloseListener listener) {
+        mAppSocketClientCloseListener = listener;
+    }
+
+    public interface AppSocketClientCloseListener {
+        void onClose(int code, String reason, boolean remote);
     }
 }

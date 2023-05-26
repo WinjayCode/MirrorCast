@@ -104,18 +104,24 @@
             android:name=".PhoneActivity"
             android:exported="true" />
 
+        <service
+            android:name=".app_socket.AppSocketService"
+            android:enabled="true"
+            android:exported="true" />
+
         <!-- wifi direct -->
         <activity
             android:name=".wifidirect.WIFIDirectActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:theme="@style/ActionBarAppTheme" />
         <!-- wifi direct -->
 
         <!-- aoa -->
         <activity
             android:name=".aoa.VehicleAOAActivity"
+            android:configChanges="orientation|screenSize"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:configChanges="orientation|screenSize" />
+            android:launchMode="singleTask" />
 
         <activity
             android:name=".aoa.PhoneAOAActivity"
@@ -161,9 +167,10 @@
         <!--android:excludeFromRecents="true"-->
         <activity
             android:name=".car.server.CarLauncherActivity"
+            android:excludeFromRecents="true"
             android:exported="true"
-            android:screenOrientation="landscape"
             android:resizeableActivity="true"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.Client" />
 
         <activity

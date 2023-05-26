@@ -107,7 +107,7 @@ public class DroidSocketClient extends WebSocketClient {
                 Ln.e("start app on main display.");
                 split[2] = "0";
             }
-            String command = "am start -W -n " + split[1] + Constants.COMMAND_SPLIT + split[2] + " --display " + split[3];
+            String command = "am start -W -n " + split[1] + Constants.COMMAND_SPLIT + split[2] + " --display " + split[3] + " --windowingMode 6";
             try {
                 runCMDNoResult(command);
             } catch (Exception e) {

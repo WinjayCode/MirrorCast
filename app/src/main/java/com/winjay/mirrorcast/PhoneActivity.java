@@ -21,9 +21,6 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
 
     private ActivityPhoneBinding binding;
 
-//    private ServerThread serverThread;
-
-
     @Override
     protected View viewBinding() {
         binding = ActivityPhoneBinding.inflate(getLayoutInflater());
@@ -36,9 +33,6 @@ public class PhoneActivity extends BaseActivity implements View.OnClickListener 
 
         super.onCreate(savedInstanceState);
         initView();
-
-//        serverThread = new ServerThread();
-//        serverThread.start();
 
         AppSocketServerManager.getInstance().startServer();
     }

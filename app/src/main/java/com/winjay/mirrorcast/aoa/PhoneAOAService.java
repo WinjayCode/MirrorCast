@@ -49,9 +49,9 @@ public class PhoneAOAService extends Service implements PhoneAOASocketServer.OnW
         LogUtil.d(TAG);
 
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        nm.createNotificationChannel(new NotificationChannel("1", TAG, NotificationManager.IMPORTANCE_DEFAULT));
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
-        startForeground(1, builder.build());
+        nm.createNotificationChannel(new NotificationChannel("2", TAG, NotificationManager.IMPORTANCE_HIGH));
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "2");
+        startForeground(2, builder.build());
     }
 
     @Override
@@ -59,10 +59,14 @@ public class PhoneAOAService extends Service implements PhoneAOASocketServer.OnW
         super.onDestroy();
         LogUtil.d(TAG);
 
-        try {
-            phoneAOASocketServer.stop();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        stopForeground(true);
+
+        if (phoneAOASocketServer != null) {
+            try {
+                phoneAOASocketServer.stop();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

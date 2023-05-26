@@ -10,6 +10,7 @@
         android:id="@+id/vehicle_btn"
         android:layout_width="match_parent"
         android:layout_height="100dp"
+        android:layout_marginTop="50dp"
         android:text="车机（接收端）"
         android:textSize="30dp" />
 

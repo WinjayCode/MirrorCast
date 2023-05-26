@@ -277,15 +277,27 @@ public class ADBCommands {
 
     public boolean startMirrorCast(String targetIp, String serverIp, int serverPort, int bitrate, int maxSize, String displayId) {
         createTCPChannel(targetIp);
-        return startMirrorCast(serverIp, serverPort, bitrate, maxSize, displayId);
+        // 失败时做一次重试
+        if (sendMirrorCastADBCommands(serverIp, serverPort, bitrate, maxSize, displayId)) {
+            return true;
+        } else {
+            LogUtil.w(TAG, "startMirrorCast failed and retry!");
+            return sendMirrorCastADBCommands(serverIp, serverPort, bitrate, maxSize, displayId);
+        }
     }
 
     public boolean startMirrorCast(UsbDeviceConnection connection, UsbInterface usbInterface, String serverIp, int serverPort, int bitrate, int maxSize, String displayId) {
         createUSBChannel(connection, usbInterface);
-        return startMirrorCast(serverIp, serverPort, bitrate, maxSize, displayId);
+        // 失败时做一次重试
+        if (sendMirrorCastADBCommands(serverIp, serverPort, bitrate, maxSize, displayId)) {
+            return true;
+        } else {
+            LogUtil.w(TAG, "startMirrorCast failed and retry!");
+            return sendMirrorCastADBCommands(serverIp, serverPort, bitrate, maxSize, displayId);
+        }
     }
 
-    private boolean startMirrorCast(String serverIp, int serverPort, int bitrate, int maxSize, String displayId) {
+    private boolean sendMirrorCastADBCommands(String serverIp, int serverPort, int bitrate, int maxSize, String displayId) {
         LogUtil.d(TAG);
         StringBuilder command = new StringBuilder();
         command.append(" CLASSPATH=/data/local/tmp/scrcpy-server.jar app_process / com.winjay.scrcpy.Server ");

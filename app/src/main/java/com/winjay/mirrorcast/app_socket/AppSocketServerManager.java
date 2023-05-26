@@ -1,9 +1,16 @@
 package com.winjay.mirrorcast.app_socket;
 
-import com.winjay.mirrorcast.Constants;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+
+import com.winjay.mirrorcast.AppApplication;
+import com.winjay.mirrorcast.util.HandlerManager;
 import com.winjay.mirrorcast.util.LogUtil;
 
-import java.net.InetSocketAddress;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author F2848777
@@ -12,11 +19,40 @@ import java.net.InetSocketAddress;
 public class AppSocketServerManager {
     private static final String TAG = AppSocketServerManager.class.getSimpleName();
     private static volatile AppSocketServerManager mInstance;
+    private AppSocketService.MyBinder myBinder;
 
-    private AppSocketServer mAppSocketServer;
+    private CountDownLatch mCountDownLatch;
 
     private AppSocketServerManager() {
+        Intent intent = new Intent(AppApplication.context, AppSocketService.class);
+        AppApplication.context.bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
+
+    private final ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            LogUtil.d(TAG);
+            myBinder = (AppSocketService.MyBinder) service;
+            if (mCountDownLatch != null) {
+                actionResume();
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            LogUtil.d(TAG);
+            myBinder = null;
+        }
+
+        @Override
+        public void onNullBinding(ComponentName name) {
+            LogUtil.d(TAG);
+            myBinder = null;
+            if (mCountDownLatch != null) {
+                actionResume();
+            }
+        }
+    };
 
     public static AppSocketServerManager getInstance() {
         if (mInstance == null) {
@@ -30,37 +66,70 @@ public class AppSocketServerManager {
     }
 
     public void startServer() {
-        if (mAppSocketServer == null) {
-            LogUtil.d(TAG);
-            mAppSocketServer = new AppSocketServer(new InetSocketAddress(Constants.APP_SOCKET_PORT));
-            mAppSocketServer.start();
+        if (mCountDownLatch == null) {
+            HandlerManager.getInstance().postOnSubThread(new Runnable() {
+                @Override
+                public void run() {
+                    actionAwait();
+
+                    HandlerManager.getInstance().postOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            startServer();
+                        }
+                    });
+                }
+            });
+            return;
+        }
+
+        if (myBinder != null) {
+            myBinder.getService().startServer();
         }
     }
 
     public void setAppSocketServerListener(AppSocketServer.OnAppSocketServerListener listener) {
-        if (mAppSocketServer != null) {
-            mAppSocketServer.setAppSocketServerListener(listener);
+        if (myBinder != null) {
+            myBinder.getService().setAppSocketServerListener(listener);
         }
     }
 
     public void stopServer() {
-        if (mAppSocketServer != null) {
-            LogUtil.d(TAG);
+        if (myBinder != null) {
+            myBinder.getService().stopServer();
+        }
+
+        mCountDownLatch = null;
+
+        if (myBinder != null) {
             try {
-                mAppSocketServer.stop();
-            } catch (InterruptedException e) {
-                LogUtil.e(TAG, "error=" + e.getMessage());
+                AppApplication.context.unbindService(connection);
+            } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                mAppSocketServer = null;
             }
         }
     }
 
     public void sendMessage(String message) {
-        if (mAppSocketServer != null) {
-            LogUtil.d(TAG, "message=" + message);
-            mAppSocketServer.sendMessage(message);
+        if (myBinder != null) {
+            myBinder.getService().sendMessage(message);
+        }
+    }
+
+    private void actionAwait() {
+        LogUtil.d(TAG);
+        mCountDownLatch = new CountDownLatch(1);
+        try {
+            mCountDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void actionResume() {
+        if (mCountDownLatch != null) {
+            LogUtil.d(TAG);
+            mCountDownLatch.countDown();
         }
     }
 }

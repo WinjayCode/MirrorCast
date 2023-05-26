@@ -127,7 +127,7 @@ public class WIFIDirectActivity extends BaseActivity {
 
                 // 如果对方设备为GO，那么自己就是GC，需要主动连接GO的socket server
                 LogUtil.d(TAG, "current device is GC.");
-                AppSocketServerManager.getInstance().stopServer();
+//                AppSocketServerManager.getInstance().stopServer();
 
                 AppSocketClientManager.getInstance().connect(wifiP2pInfo.groupOwnerAddress.getHostAddress());
                 AppApplication.destDeviceIp = wifiP2pInfo.groupOwnerAddress.getHostAddress();
@@ -174,6 +174,11 @@ public class WIFIDirectActivity extends BaseActivity {
     };
 
     @Override
+    public boolean isFullScreen() {
+        return false;
+    }
+
+    @Override
     protected View viewBinding() {
         binding = ActivityWifiDirectBinding.inflate(getLayoutInflater());
         return binding.getRoot();
@@ -181,7 +186,7 @@ public class WIFIDirectActivity extends BaseActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+//        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
         super.onCreate(savedInstanceState);
         setTitle("选择连接设备");
@@ -189,6 +194,7 @@ public class WIFIDirectActivity extends BaseActivity {
         if (actionBar != null) {
             actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.show();
         }
 
         initView();

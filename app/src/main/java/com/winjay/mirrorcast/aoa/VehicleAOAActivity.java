@@ -343,14 +343,14 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                     m.obj = "投屏启动失败!";
                     mHandler.sendMessage(m);
 
-                    if (adbCommandRetryCount == 1) {
-                        // 目前先做一次重试
-                        return;
-                    }
-
-                    LogUtil.d(TAG, "resend adb command!");
-                    adbCommandRetryCount++;
-                    adbCommand(serverPort, maxSize, displayId);
+//                    if (adbCommandRetryCount == 1) {
+//                        // 目前先做一次重试
+//                        return;
+//                    }
+//
+//                    LogUtil.d(TAG, "resend adb command!");
+//                    adbCommandRetryCount++;
+//                    adbCommand(serverPort, maxSize, displayId);
                 }
             }
         }).start();

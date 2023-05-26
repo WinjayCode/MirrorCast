@@ -2,6 +2,7 @@ package com.winjay.mirrorcast.util;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.util.DisplayMetrics;
@@ -100,28 +101,48 @@ public class DisplayUtil {
         return statusBarHeight;
     }
 
+    public static boolean isPortrait(Context context) {
+        return context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
+    }
+
+    /**
+     * @param orientation 虚拟屏想要的方向
+     * @return 虚拟屏ID
+     */
     public static int createVirtualDisplay(int orientation) {
         int displayId = -1;
+        int width = 0;
+        int height = 0;
         try {
             LogUtil.d(TAG);
             DisplayManager displayManager = (DisplayManager) AppApplication.context.getSystemService(Context.DISPLAY_SERVICE);
-            // 默认竖屏时，后面的逻辑才正常，如果当前Activity是横屏，则这里的宽高就反了！
             int[] screenSize = getScreenSize(AppApplication.context);
+            if (orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                if (isPortrait(AppApplication.context)) {
+                    width = screenSize[1];
+                    height = screenSize[0];
+                } else {
+                    width = screenSize[0];
+                    height = screenSize[1];
+                }
+            }
+            if (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+                if (isPortrait(AppApplication.context)) {
+                    width = screenSize[0];
+                    height = screenSize[1];
+                } else {
+                    width = screenSize[1];
+                    height = screenSize[0];
+                }
+            }
+            LogUtil.d(TAG, "width=" + width + ", height=" + height);
             int flags = 139;
 //            int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION |
 //                    DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC |
 //                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR;
-            VirtualDisplay display;
-            if (orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
-                display = displayManager.createVirtualDisplay("app_mirror",
-                        screenSize[1], screenSize[0], screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
-                        flags);
-            } else {
-                display = displayManager.createVirtualDisplay("app_mirror",
-                        screenSize[0], screenSize[1], screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
-                        flags);
-            }
-
+            VirtualDisplay display = displayManager.createVirtualDisplay("app_mirror",
+                    width, height, screenSize[2], new SurfaceView(AppApplication.context).getHolder().getSurface(),
+                    flags);
             displayId = display.getDisplay().getDisplayId();
             LogUtil.d(TAG, "virtual display ID=" + displayId);
 

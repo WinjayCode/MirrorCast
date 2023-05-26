@@ -7,6 +7,7 @@
     <Button
         android:id="@+id/btn_wifi_p2p"
         style="@style/BtnStyle"
+        android:layout_marginTop="50dp"
         android:text="WIFI直连" />
 
     <EditText

@@ -15,6 +15,7 @@ public class AppSocketServer extends WebSocketServer {
     private static final String TAG = AppSocketServer.class.getSimpleName();
     private WebSocket mWebSocket;
     private OnAppSocketServerListener mOnAppSocketServerListener;
+    private OnAppSocketServerErrorListener mOnAppSocketServerErrorListener;
 
     public AppSocketServer(InetSocketAddress inetSocketAddress) {
         super(inetSocketAddress);
@@ -38,7 +39,7 @@ public class AppSocketServer extends WebSocketServer {
     public void onMessage(WebSocket conn, String message) {
         LogUtil.d(TAG, "message=" + message);
         if (message.equals("ping")) {
-            LogUtil.d(TAG, "receive ping and send pong.");
+//            LogUtil.d(TAG, "receive ping and send pong.");
             sendMessage("pong");
             return;
         }
@@ -52,6 +53,10 @@ public class AppSocketServer extends WebSocketServer {
     @Override
     public void onError(WebSocket conn, Exception ex) {
         LogUtil.e(TAG, ex.getMessage());
+
+        if (mOnAppSocketServerErrorListener != null) {
+            mOnAppSocketServerErrorListener.onError();
+        }
     }
 
     @Override
@@ -72,5 +77,13 @@ public class AppSocketServer extends WebSocketServer {
 
     public interface OnAppSocketServerListener {
         void onMessage(String message);
+    }
+
+    public void setOnAppSocketServerErrorListener(OnAppSocketServerErrorListener listener) {
+        mOnAppSocketServerErrorListener = listener;
+    }
+
+    public interface OnAppSocketServerErrorListener {
+        void onError();
     }
 }

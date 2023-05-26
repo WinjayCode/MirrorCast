@@ -34,4 +34,7 @@
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowFullscreen">true</item>
     </style>
+
+    <style name="ActionBarAppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    </style>
 </resources>

@@ -166,6 +166,18 @@ public class CarLauncherActivity extends BaseActivity implements View.OnClickLis
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        LogUtil.d(TAG);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        LogUtil.d(TAG);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         LogUtil.d(TAG);

@@ -18,6 +18,9 @@ public class AppSocketManager {
     private static final String TAG = AppSocketManager.class.getSimpleName();
     private static volatile AppSocketManager instance;
 
+    private boolean isWiFiDirectGroupOwner;
+    private AppSocketListener appSocketListener;
+
     public static AppSocketManager getInstance() {
         if (instance == null) {
             synchronized (AppSocketManager.class) {
@@ -31,9 +34,6 @@ public class AppSocketManager {
 
     private AppSocketManager() {
     }
-
-    private boolean isWiFiDirectGroupOwner;
-    private AppSocketListener appSocketListener;
 
     public void setIsWiFiDirectGroupOwner(boolean isWiFiDirectGroupOwner) {
         this.isWiFiDirectGroupOwner = isWiFiDirectGroupOwner;
