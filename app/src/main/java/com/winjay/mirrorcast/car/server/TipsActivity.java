@@ -1,13 +1,17 @@
 package com.winjay.mirrorcast.car.server;
 
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityTipsBinding;
+import com.winjay.mirrorcast.util.HandlerManager;
 import com.winjay.mirrorcast.util.LogUtil;
 
 /**
@@ -17,6 +21,8 @@ import com.winjay.mirrorcast.util.LogUtil;
 public class TipsActivity extends BaseActivity {
     private static final String TAG = TipsActivity.class.getSimpleName();
     private ActivityTipsBinding binding;
+
+    private final float startBrightness = 0.2f;
 
     @Override
     public boolean isFullScreen() {
@@ -36,20 +42,67 @@ public class TipsActivity extends BaseActivity {
         binding.backgroundLl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO 会导致应用activity都被关闭...
-                // return phone launcher
-                Intent intent = new Intent();
-                intent.addCategory(Intent.CATEGORY_HOME);
-                intent.setAction(Intent.ACTION_MAIN);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                LogUtil.d(TAG);
+                setBrightness(startBrightness);
+
+                HandlerManager.getInstance().postDelayedOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        goHome();
+                    }
+                }, 150);
             }
         });
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        LogUtil.d(TAG);
+        changeBrightness();
+    }
+
+    private void goHome() {
+        // return phone launcher
+        Intent intent = new Intent();
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
+    @Override
     public void onBackPressed() {
         // mask back button
+    }
+
+    private void changeBrightness() {
+        setBrightness(startBrightness);
+        ValueAnimator animator = ValueAnimator.ofFloat(startBrightness, 0f);
+        animator.setDuration(5000); // 设置渐变时间
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                float value = (float) animator.getAnimatedValue();
+                setBrightness(value);
+            }
+        });
+        animator.start();
+    }
+
+    public void setBrightness(float paramFloat) {
+        WindowManager.LayoutParams params = getWindow().getAttributes();
+        params.screenBrightness = paramFloat;
+        getWindow().setAttributes(params);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        LogUtil.d(TAG);
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            changeBrightness();
+        }
+        return super.onTouchEvent(event);
     }
 
     @Override
