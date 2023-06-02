@@ -12,8 +12,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.R;
+import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityCarHomeBinding;
 import com.winjay.mirrorcast.util.LogUtil;
 
@@ -56,6 +56,18 @@ public class CarLauncherActivity extends BaseActivity implements View.OnClickLis
         handleTime();
 
         initHomeViewPager();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        LogUtil.d(TAG);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LogUtil.d(TAG);
     }
 
     private void initHomeViewPager() {

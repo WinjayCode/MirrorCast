@@ -110,7 +110,7 @@ public class DroidScreenEncoder implements Device.RotationListener {
                 Rect unlockedVideoRect = screenInfo.getUnlockedVideoSize().toRect();
                 int videoRotation = screenInfo.getVideoRotation();
                 int layerStack = device.getLayerStack();
-                Ln.i("videoRect.width=" + videoRect.width() + ", videoRect.height=" + videoRect.height());
+                Ln.d("videoRect.width=" + videoRect.width() + ", videoRect.height=" + videoRect.height());
                 setSize(format, videoRect.width(), videoRect.height());
 
                 format.setInteger(MediaFormat.KEY_BIT_RATE, videoRect.width() * videoRect.height() / 2);

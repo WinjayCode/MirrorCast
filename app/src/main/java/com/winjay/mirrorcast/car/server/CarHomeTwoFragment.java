@@ -113,10 +113,11 @@ public class CarHomeTwoFragment extends BaseFragment<FragmentCarHomeTwoBinding> 
                     transaction.addToBackStack("CarAppFragment");
                     transaction.commit();
                 } else if (appBean.getAppName().equals("返回车机系统")) {
+                    // TODO 此处的逻辑根据具体需求决定！（和ShowCarLauncherActivity对应）
                     LogUtil.d(TAG, "return car system.");
                     AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_RETURN_CAR_SYSTEM);
                     // close TipsActivity and CarLauncherActivity
-                    LogUtil.d(TAG, "activity count=" + ActivityListUtil.getActivityCount());
+                    /*LogUtil.d(TAG, "activity count=" + ActivityListUtil.getActivityCount());
                     for (int i = ActivityListUtil.getActivityCount() - 2; i < ActivityListUtil.getActivityCount(); i++) {
                         if (i < 0) {
                             break;
@@ -124,7 +125,7 @@ public class CarHomeTwoFragment extends BaseFragment<FragmentCarHomeTwoBinding> 
                         if (ActivityListUtil.getActivityByIndex(i) != null) {
                             ActivityListUtil.getActivityByIndex(i).finish();
                         }
-                    }
+                    }*/
                 } else {
                     toast("功能完善中！");
                 }

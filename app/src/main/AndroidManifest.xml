@@ -167,8 +167,8 @@
         <!--android:excludeFromRecents="true"-->
         <activity
             android:name=".car.server.CarLauncherActivity"
-            android:excludeFromRecents="true"
             android:exported="true"
+            android:launchMode="singleTask"
             android:resizeableActivity="true"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.Client" />

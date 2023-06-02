@@ -174,6 +174,14 @@ public abstract class BaseActivity extends AppCompatActivity implements EasyPerm
         startActivity(intent);
     }
 
+    public void goHome() {
+        Intent intent = new Intent();
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
     ////////////////////////////////////////// permission //////////////////////////////////////////
     protected String[] permissions() {
         return new String[]{};

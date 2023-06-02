@@ -39,6 +39,10 @@ public class ScreenDecoder {
 
     public void decodeData(byte[] data) {
         LogUtil.d(TAG, "data.length=" + data.length);
+        if (mMediaCodec == null) {
+            LogUtil.w(TAG, "mMediaCodec is null!");
+            return;
+        }
         try {
             int index = mMediaCodec.dequeueInputBuffer(100000);
 //            LogUtil.d(TAG, "index=" + index);

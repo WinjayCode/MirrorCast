@@ -1,5 +1,6 @@
 package com.winjay.scrcpy;
 
+import android.os.Handler;
 import android.text.TextUtils;
 import android.view.MotionEvent;
 
@@ -61,87 +62,124 @@ public class DroidSocketClient extends WebSocketClient {
     public void onMessage(String message) {
         // 移栈方式
         if (message.startsWith(Constants.SCRCPY_COMMAND_MOVE_PHONE_APP_STACK_MIRROR_CAST)) {
-            String[] split = message.split(Constants.COMMAND_SPLIT);
-            Ln.i("app mirror displayId=" + split[1]);
-            try {
-//                Command.exec("sh");
-                String result = runCMD("am stack list");
-                Ln.i("stack list result=" + result);
-                int start = result.indexOf("taskId=");
-                Ln.i("start=" + start);
-
-                if (start == -1) {
-                    return;
-                }
-
-                int end = result.indexOf(":");
-                Ln.i("end=" + end);
-                int taskId = Integer.parseInt(result.substring(start + 7, end));
-                Ln.i("top task id=" + taskId);
-
-                String command = "am display move-stack " + taskId + " " + split[1];
-                Ln.i("move-stack command=" + command);
-
-                runCMD(command);
-            } catch (Exception e) {
-                Ln.i("app mirror error " + e.getMessage());
-            }
+            moveStack(message);
         }
         // 启动app到虚拟屏上
         else if (message.startsWith(Constants.SCRCPY_COMMAND_START_PHONE_APP_MIRROR_CAST)) {
-            Ln.i("start app on specified display.");
-            String[] split = message.split(Constants.COMMAND_SPLIT);
-            if (split.length < 4) {
-                Ln.e("miss parameters.");
-                return;
-            }
-            if (TextUtils.isEmpty(split[1])) {
-                Ln.e("miss app package name.");
-                return;
-            }
-            if (TextUtils.isEmpty(split[2])) {
-                Ln.e("miss app enter class.");
-                return;
-            }
-            if (TextUtils.isEmpty(split[3])) {
-                Ln.e("start app on main display.");
-                split[2] = "0";
-            }
-            String command = "am start -W -n " + split[1] + Constants.COMMAND_SPLIT + split[2] + " --display " + split[3] + " --windowingMode 6";
-            try {
-                runCMDNoResult(command);
-            } catch (Exception e) {
-                Ln.d("doCommand() error " + e.getMessage());
-                e.printStackTrace();
-            }
+            startAppOnDisplay(message);
         }
         // 反控
         else if (message.startsWith(Constants.SCRCPY_COMMAND_MOTION_EVENT)) {
+            handleTouchEvent(message);
+        }
+    }
+
+    private void moveStack(String message) {
+        String[] split = message.split(Constants.COMMAND_SPLIT);
+        Ln.i("app mirror displayId=" + split[1]);
+        try {
+//                Command.exec("sh");
+            String result = runCMD("am stack list");
+            Ln.i("stack list result=" + result);
+            int start = result.indexOf("taskId=");
+            Ln.i("start=" + start);
+
+            if (start == -1) {
+                return;
+            }
+
+            int end = result.indexOf(":");
+            Ln.i("end=" + end);
+            int taskId = Integer.parseInt(result.substring(start + 7, end));
+            Ln.i("top task id=" + taskId);
+
+            String command = "am display move-stack " + taskId + " " + split[1];
+            Ln.i("move-stack command=" + command);
+
+            runCMD(command);
+        } catch (Exception e) {
+            Ln.e("app mirror error " + e.getMessage());
+        }
+    }
+
+    private void startAppOnDisplay(String message) {
+        Ln.d("start app on specified display.");
+        String[] split = message.split(Constants.COMMAND_SPLIT);
+        if (split.length < 4) {
+            Ln.e("miss parameters.");
+            return;
+        }
+        if (TextUtils.isEmpty(split[1])) {
+            Ln.e("miss app package name.");
+            return;
+        }
+        if (TextUtils.isEmpty(split[2])) {
+            Ln.e("miss app enter class.");
+            return;
+        }
+        if (TextUtils.isEmpty(split[3])) {
+            Ln.e("start app on main display.");
+            split[2] = "0";
+        }
+        String command = "am start -n " + split[1] + Constants.COMMAND_SPLIT + split[2] + " --display " + split[3] + " --windowingMode 6";
+//            String command = "am start -W -n " + split[1] + Constants.COMMAND_SPLIT + split[2] + " --display " + split[3];
+        Ln.d("command: " + command);
+        try {
+            runCMDNoResult(command);
+        } catch (Exception e) {
+            Ln.e("doCommand() error " + e.getMessage());
+            e.printStackTrace();
+        }
+
+
+
+        /*new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                String command2 = "am start -n " + split[1] + Constants.COMMAND_SPLIT + split[2] + " --display " + split[3];
+                Ln.d("command: " + command2);
+                try {
+                    runCMDNoResult(command2);
+                } catch (Exception e) {
+                    Ln.e("doCommand() error " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        }.start();*/
+    }
+
+    private void handleTouchEvent(String message) {
 //            if (mDroidController != null) {
 //                mDroidController.handleEvent(message);
 //            }
 
-            String[] split = message.split(Constants.COMMAND_SPLIT);
-            String motionevent = "";
-            int action = Integer.parseInt(split[1]);
-            if (action == MotionEvent.ACTION_DOWN) {
-                motionevent = "DOWN";
-            } else if (action == MotionEvent.ACTION_UP) {
-                motionevent = "UP";
-            } else if (action == MotionEvent.ACTION_MOVE) {
-                motionevent = "MOVE";
-            } else if (action == MotionEvent.ACTION_CANCEL) {
-                motionevent = "CANCEL";
-            }
+        String[] split = message.split(Constants.COMMAND_SPLIT);
+        String motionevent = "";
+        int action = Integer.parseInt(split[1]);
+        if (action == MotionEvent.ACTION_DOWN) {
+            motionevent = "DOWN";
+        } else if (action == MotionEvent.ACTION_UP) {
+            motionevent = "UP";
+        } else if (action == MotionEvent.ACTION_MOVE) {
+            motionevent = "MOVE";
+        } else if (action == MotionEvent.ACTION_CANCEL) {
+            motionevent = "CANCEL";
+        }
 
 //            Ln.i("x=" + split[1] + " y=" + split[2]);
 
-            String command;
-            if (mDevice.getDisplayId() != 0) {
-                command = "input -d " + mDevice.getDisplayId() + " motionevent " + motionevent + " " + Integer.parseInt(split[2]) + " " + Integer.parseInt(split[3]);
-            } else {
-                command = "input motionevent " + motionevent + " " + Integer.parseInt(split[2]) + " " + Integer.parseInt(split[3]);
-            }
+        String command;
+        if (mDevice.getDisplayId() != 0) {
+            command = "input -d " + mDevice.getDisplayId() + " motionevent " + motionevent + " " + Integer.parseInt(split[2]) + " " + Integer.parseInt(split[3]);
+        } else {
+            command = "input motionevent " + motionevent + " " + Integer.parseInt(split[2]) + " " + Integer.parseInt(split[3]);
+        }
 //            Ln.i("motionevent command=" + command);
 
 //            try {
@@ -152,19 +190,18 @@ public class DroidSocketClient extends WebSocketClient {
 //                e.printStackTrace();
 //            }
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        runCMDNoResult(command);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    runCMDNoResult(command);
 //                        runCMD(command);
-                    } catch (Exception e) {
-                        Ln.i("doCommand() error " + e.getMessage());
-                        e.printStackTrace();
-                    }
+                } catch (Exception e) {
+                    Ln.i("doCommand() error " + e.getMessage());
+                    e.printStackTrace();
                 }
-            }).start();
-        }
+            }
+        }).start();
     }
 
     private void runCMDNoResult(String cmd) throws Exception {

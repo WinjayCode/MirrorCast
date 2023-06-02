@@ -66,6 +66,7 @@ public class AppSocketServerManager {
     }
 
     public void startServer() {
+        LogUtil.d(TAG);
         if (mCountDownLatch == null) {
             HandlerManager.getInstance().postOnSubThread(new Runnable() {
                 @Override

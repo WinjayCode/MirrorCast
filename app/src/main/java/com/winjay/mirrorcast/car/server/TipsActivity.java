@@ -42,7 +42,6 @@ public class TipsActivity extends BaseActivity {
         binding.backgroundLl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LogUtil.d(TAG);
                 setBrightness(startBrightness);
 
                 HandlerManager.getInstance().postDelayedOnMainThread(new Runnable() {
@@ -62,15 +61,6 @@ public class TipsActivity extends BaseActivity {
         changeBrightness();
     }
 
-    private void goHome() {
-        // return phone launcher
-        Intent intent = new Intent();
-        intent.addCategory(Intent.CATEGORY_HOME);
-        intent.setAction(Intent.ACTION_MAIN);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-    }
-
     @Override
     public void onBackPressed() {
         // mask back button
@@ -79,7 +69,7 @@ public class TipsActivity extends BaseActivity {
     private void changeBrightness() {
         setBrightness(startBrightness);
         ValueAnimator animator = ValueAnimator.ofFloat(startBrightness, 0f);
-        animator.setDuration(5000); // 设置渐变时间
+        animator.setDuration(5000);
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animator) {
@@ -98,8 +88,7 @@ public class TipsActivity extends BaseActivity {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        LogUtil.d(TAG);
-        if (event.getAction() == MotionEvent.ACTION_UP) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
             changeBrightness();
         }
         return super.onTouchEvent(event);

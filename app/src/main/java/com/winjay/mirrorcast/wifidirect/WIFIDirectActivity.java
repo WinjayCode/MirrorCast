@@ -129,6 +129,7 @@ public class WIFIDirectActivity extends BaseActivity {
                 LogUtil.d(TAG, "current device is GC.");
 //                AppSocketServerManager.getInstance().stopServer();
 
+                // TODO 偶现无法连接的问题，应该是AppSocketServerManager未连接上AppSocketService导致！
                 AppSocketClientManager.getInstance().connect(wifiP2pInfo.groupOwnerAddress.getHostAddress());
                 AppApplication.destDeviceIp = wifiP2pInfo.groupOwnerAddress.getHostAddress();
                 AppSocketManager.getInstance().setIsWiFiDirectGroupOwner(false);

@@ -123,6 +123,7 @@ public class ADBCommands {
             sock = new Socket(serverIp, 5555);
         } catch (IOException e) {
             e.printStackTrace();
+            LogUtil.e(TAG, "The phone is not listening on port 5555!");
             return;
         }
         try {
@@ -163,12 +164,22 @@ public class ADBCommands {
 
     public boolean sendServerJar(String serverIp) {
         createTCPChannel(serverIp);
-        return pushFile();
+        if (pushFile()) {
+            return true;
+        } else {
+            LogUtil.w(TAG, "sendServerJar failed and retry!");
+            return pushFile();
+        }
     }
 
     public boolean sendServerJar(UsbDeviceConnection connection, UsbInterface usbInterface) {
         createUSBChannel(connection, usbInterface);
-        return pushFile();
+        if (pushFile()) {
+            return true;
+        } else {
+            LogUtil.w(TAG, "sendServerJar failed and retry!");
+            return pushFile();
+        }
     }
 
     private boolean pushFile() {

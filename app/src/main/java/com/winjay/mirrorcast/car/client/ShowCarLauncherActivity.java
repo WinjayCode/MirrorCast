@@ -1,26 +1,27 @@
 package com.winjay.mirrorcast.car.client;
 
+import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.winjay.mirrorcast.app_socket.AppSocketManager;
-import com.winjay.mirrorcast.common.BaseActivity;
-import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.ADBCommands;
+import com.winjay.mirrorcast.Constants;
+import com.winjay.mirrorcast.app_socket.AppSocketManager;
 import com.winjay.mirrorcast.car.server.CarLauncherActivity;
+import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityCarShowBinding;
 import com.winjay.mirrorcast.decode.ScreenDecoderSocketServer;
 import com.winjay.mirrorcast.decode.ScreenDecoderSocketServerManager;
-import com.winjay.mirrorcast.util.ActivityListUtil;
 import com.winjay.mirrorcast.util.DisplayUtil;
+import com.winjay.mirrorcast.util.HandlerManager;
 import com.winjay.mirrorcast.util.LogUtil;
 import com.winjay.mirrorcast.util.NetUtil;
 
@@ -52,6 +53,8 @@ public class ShowCarLauncherActivity extends BaseActivity {
     private String phoneAppPackageName;
     private String phoneAppEnterClassName;
 
+    private SurfaceTexture mSurfaceTexture;
+
     @Override
     public boolean isFullScreen() {
         return true;
@@ -71,27 +74,38 @@ public class ShowCarLauncherActivity extends BaseActivity {
 
         mServerIp = getIntent().getStringExtra("serverIp");
 
-        binding.carLauncherSv
-                .getHolder()
-                .addCallback(
-                        new SurfaceHolder.Callback() {
-                            @Override
-                            public void surfaceCreated(@NonNull SurfaceHolder holder) {
-                                LogUtil.d(TAG);
-                                createCarLauncherVirtualDisplay();
-                            }
+        binding.carLauncherTv.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            @Override
+            public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
+                LogUtil.d(TAG);
+                if (mSurfaceTexture == null) {
+                    mSurfaceTexture = surface;
+                } else {
+                    binding.carLauncherTv.setSurfaceTexture(mSurfaceTexture);
+                }
 
-                            @Override
-                            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-                            }
+                if (!screenDecoderSocketServerIsConnected) {
+                    createCarLauncherVirtualDisplay();
+                }
+            }
 
-                            @Override
-                            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-                                LogUtil.d(TAG);
-                            }
-                        });
+            @Override
+            public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
+            }
 
-        binding.carLauncherSv.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
+                LogUtil.d(TAG);
+                mSurfaceTexture = surface;
+                return false;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
+            }
+        });
+
+        binding.carLauncherTv.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (mCarLauncherScreenDecoderSocketServerManager != null) {
@@ -131,7 +145,7 @@ public class ShowCarLauncherActivity extends BaseActivity {
                             Constants.CAR_LAUNCHER_MIRROR_CAST_SERVER_PORT,
                             Math.max(screenSize[0], screenSize[1]),
                             displayId,
-                            binding.carLauncherSv);
+                            binding.carLauncherTv);
                 }
                 // car launcher页面中: 手机主页面镜像投屏
                 else if (message.equals(Constants.APP_COMMAND_PHONE_MAIN_SCREEN_MIRROR_CAST)) {
@@ -172,14 +186,17 @@ public class ShowCarLauncherActivity extends BaseActivity {
                 }
                 // return car system
                 else if (message.equals(Constants.APP_COMMAND_RETURN_CAR_SYSTEM)) {
-                    // TODO 退出应用？
-                    for (int i = ActivityListUtil.getActivityCount() - 1; i >= 0; i--) {
+                    // TODO 此处的逻辑根据具体需求决定！（和CarHomeTwoFragment对应）
+
+                    /*for (int i = ActivityListUtil.getActivityCount() - 1; i >= 0; i--) {
                         if (ActivityListUtil.getActivityByIndex(i) != null) {
                             ActivityListUtil.getActivityByIndex(i).finish();
                         }
-                    }
+                    }*/
 
-//                    finish();
+                    /*finish();*/
+
+                    goHome();
                 }
             }
         });
@@ -203,7 +220,7 @@ public class ShowCarLauncherActivity extends BaseActivity {
             }
         });
 
-        binding.phoneMainScreenLayout.mirrorWindowSv.setOnTouchListener(new View.OnTouchListener() {
+        binding.phoneMainScreenLayout.mirrorWindowTv.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (mPhoneMainScreenDecoderSocketServerManager != null) {
@@ -225,7 +242,7 @@ public class ShowCarLauncherActivity extends BaseActivity {
                 Constants.PHONE_MAIN_SCREEN_MIRROR_CAST_SERVER_PORT,
                 Math.min(screenSize[0], screenSize[1]) - 200,
                 "0",
-                binding.phoneMainScreenLayout.mirrorWindowSv);
+                binding.phoneMainScreenLayout.mirrorWindowTv);
     }
 
     private void carLauncherPhoneAppMirrorCast(String displayId) {
@@ -245,7 +262,7 @@ public class ShowCarLauncherActivity extends BaseActivity {
             }
         });
 
-        binding.phoneAppScreenLayout.mirrorWindowSv.setOnTouchListener(new View.OnTouchListener() {
+        binding.phoneAppScreenLayout.mirrorWindowTv.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (mPhoneAppScreenDecoderSocketServerManager != null) {
@@ -282,16 +299,17 @@ public class ShowCarLauncherActivity extends BaseActivity {
                 Constants.PHONE_APP_MIRROR_CAST_SERVER_PORT,
                 Math.min(screenSize[0], screenSize[1]) - 200,
                 displayId,
-                binding.phoneAppScreenLayout.mirrorWindowSv);
+                binding.phoneAppScreenLayout.mirrorWindowTv);
     }
 
-    private ScreenDecoderSocketServerManager startScrcpyServer(int serverPort, int maxSize, String displayId, SurfaceView surfaceView) {
+    private ScreenDecoderSocketServerManager startScrcpyServer(int serverPort, int maxSize, String displayId, TextureView textureView) {
         ScreenDecoderSocketServerManager screenDecoderSocketServerManager = new ScreenDecoderSocketServerManager();
         screenDecoderSocketServerManager.startServer(serverPort, new ScreenDecoderSocketServer.OnSocketServerListener() {
             @Override
             public void onOpen() {
                 // 启动手机端car launcher到虚拟屏上
                 if (serverPort == Constants.CAR_LAUNCHER_MIRROR_CAST_SERVER_PORT) {
+                    screenDecoderSocketServerIsConnected = true;
                     screenDecoderSocketServerManager.sendMessage(
                             Constants.SCRCPY_COMMAND_START_PHONE_APP_MIRROR_CAST
                                     + Constants.COMMAND_SPLIT
@@ -341,10 +359,10 @@ public class ShowCarLauncherActivity extends BaseActivity {
                         public void run() {
                             // car launcher
                             if (serverPort == Constants.CAR_LAUNCHER_MIRROR_CAST_SERVER_PORT) {
-                                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) surfaceView.getLayoutParams();
+                                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) textureView.getLayoutParams();
                                 layoutParams.width = videoWidth;
                                 layoutParams.height = videoHeight;
-                                surfaceView.setLayoutParams(layoutParams);
+                                textureView.setLayoutParams(layoutParams);
 
                                 carLauncherWidthRatio = widthRatio;
                                 carLauncherHeightRatio = heightRatio;
@@ -360,10 +378,10 @@ public class ShowCarLauncherActivity extends BaseActivity {
                                 controlBarRlLayoutParams.width = videoWidth;
                                 binding.phoneMainScreenLayout.controlBarRl.setLayoutParams(controlBarRlLayoutParams);
 
-                                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) surfaceView.getLayoutParams();
+                                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) textureView.getLayoutParams();
                                 layoutParams.width = videoWidth;
                                 layoutParams.height = videoHeight;
-                                surfaceView.setLayoutParams(layoutParams);
+                                textureView.setLayoutParams(layoutParams);
 
                                 phoneMainScreenWidthRatio = widthRatio;
                                 phoneMainScreenHeightRatio = heightRatio;
@@ -379,27 +397,49 @@ public class ShowCarLauncherActivity extends BaseActivity {
                                 controlBarRlLayoutParams.width = videoWidth;
                                 binding.phoneAppScreenLayout.controlBarRl.setLayoutParams(controlBarRlLayoutParams);
 
-                                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) surfaceView.getLayoutParams();
+                                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) textureView.getLayoutParams();
                                 layoutParams.width = videoWidth;
                                 layoutParams.height = videoHeight;
-                                surfaceView.setLayoutParams(layoutParams);
+                                textureView.setLayoutParams(layoutParams);
 
                                 phoneAppScreenWidthRatio = widthRatio;
                                 phoneAppScreenHeightRatio = heightRatio;
                             }
-                            screenDecoderSocketServerManager.startScreenDecode(surfaceView.getHolder().getSurface(), videoWidth, videoHeight);
+                            screenDecoderSocketServerManager.startScreenDecode(new Surface(mSurfaceTexture), videoWidth, videoHeight);
                         }
                     });
                 }
             }
         });
 
+        sendCommand(serverPort, maxSize, displayId);
+
+        // TODO 3s后如果没有启动成功，做一次重试
+        HandlerManager.getInstance().postDelayedOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                if (isStartMirrorCastSucceeded && !screenDecoderSocketServerIsConnected) {
+                    LogUtil.w(TAG, "adbcommand is succeeded, but failed actually!");
+                    sendCommand(serverPort, maxSize, displayId);
+                }
+            }
+        }, 3000);
+
+        return screenDecoderSocketServerManager;
+    }
+
+    boolean screenDecoderSocketServerIsConnected = false;
+
+    private boolean isStartMirrorCastSucceeded = false;
+
+    private void sendCommand(int serverPort, int maxSize, String displayId) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 LogUtil.d(TAG, "serverPort=" + serverPort + ",maxSize=" + maxSize + ",displayId=" + displayId);
                 if (ADBCommands.getInstance(ShowCarLauncherActivity.this).startMirrorCast(mServerIp, NetUtil.wifiIpAddress(), serverPort, 0, maxSize, displayId)) {
-                    LogUtil.d(TAG, "scrcpy server start success.");
+                    LogUtil.d(TAG, "scrcpy server start success!");
+                    isStartMirrorCastSucceeded = true;
                 } else {
                     LogUtil.e(TAG, "scrcpy server start failure!");
                     runOnUiThread(new Runnable() {
@@ -411,8 +451,6 @@ public class ShowCarLauncherActivity extends BaseActivity {
                 }
             }
         }).start();
-
-        return screenDecoderSocketServerManager;
     }
 
     private class MirrorWindowBarOnTouchListener implements View.OnTouchListener {
@@ -488,141 +526,5 @@ public class ShowCarLauncherActivity extends BaseActivity {
         if (mPhoneAppScreenDecoderSocketServerManager != null) {
             mPhoneAppScreenDecoderSocketServerManager.stopServer();
         }
-//        binding = null;
-//        if (isAdded) {
-//            isAdded = false;
-//            windowManager.removeView(floatView);
-//        }
     }
-
-
-    //////////////////////////////////////////////// 镜像悬浮窗实现 ////////////////////////////////////////////////
-    /*@Override
-    public void onBackPressed() {
-        if (isAdded) {
-            isAdded = false;
-            windowManager.removeView(floatView);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    private WindowManager windowManager;
-    private WindowManager.LayoutParams layoutParams;
-    private View floatView;
-    private SurfaceView floatSurfaceView;
-    private boolean isAdded;
-
-    private void mirrorMainScreenOnWindow(String serverPort, String displayId) {
-        if (!Settings.canDrawOverlays(getContext())) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-            intent.setData(Uri.parse("package:" + getContext().getPackageName()));
-            startActivity(intent);
-        } else {
-            if (!isAdded) {
-                createWindow();
-            }
-        }
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                LogUtil.d(TAG);
-                if (SendCommands.getInstance(getContext()).startMirrorCast(mServerIp, serverPort, 0, DisplayUtil.getScreenSize(getContext())[1], displayId)) {
-                    LogUtil.d(TAG, "scrcpy start success.");
-                    floatSurfaceView.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            mSocketClientManager = initSocketManager(Integer.parseInt(serverPort), floatSurfaceView.getHolder().getSurface(), displayId);
-                        }
-                    }, 2000);
-                } else {
-                    LogUtil.e(TAG, "scrcpy start failure!");
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            toast("镜像启动失败!");
-                        }
-                    });
-                }
-            }
-        }).start();
-    }
-
-    private void createWindow() {
-        windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
-        layoutParams = new WindowManager.LayoutParams();
-
-        layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-
-        layoutParams.format = PixelFormat.RGBA_8888;
-        layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
-
-        layoutParams.width = 800;
-        layoutParams.height = 1000;
-
-        layoutParams.screenOrientation = ActivityInfo.SCREEN_ORIENTATION_NOSENSOR; //竖屏
-        layoutParams.gravity = Gravity.START | Gravity.TOP;
-
-//        layoutParams.x = dipToPx(this, 34);
-        layoutParams.y = DisplayUtil.dip2px(getContext(), 100);
-
-        floatView = LayoutInflater.from(getContext()).inflate(R.layout.window_float_view, null);
-        floatSurfaceView = floatView.findViewById(R.id.sv_screen);
-
-        floatView.setOnTouchListener(new FloatingOnTouchListener());
-
-        floatSurfaceView.setFocusable(true);
-        floatSurfaceView.setFocusableInTouchMode(true);
-        floatSurfaceView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-//                if (mSocketClientManager_Second != null) {
-//                    String mockEvent = "" + event.getAction() + "/" + (int) event.getX() + "/" + (int) event.getY();
-//                    LogUtil.d(TAG, "float view event=" + mockEvent);
-//                    mSocketClientManager_Second.sendEvent(mockEvent);
-//                }
-                return true;
-            }
-        });
-
-        windowManager.addView(floatView, layoutParams);
-        isAdded = true;
-    }
-
-    private class FloatingOnTouchListener implements View.OnTouchListener {
-
-        private int
-                mTouchStartX,
-                mTouchStartY,
-                mTouchCurrentX,
-                mTouchCurrentY,
-                mMoveX,
-                mMoveY;
-
-        @Override
-        public boolean onTouch(View view, MotionEvent event) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                mTouchStartX = (int) event.getRawX();
-                mTouchStartY = (int) event.getRawY();
-
-                mMoveX = 0;
-                mMoveY = 0;
-            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                mTouchCurrentX = (int) event.getRawX();
-                mTouchCurrentY = (int) event.getRawY();
-                mMoveX = mTouchCurrentX - mTouchStartX;
-                mMoveY = mTouchCurrentY - mTouchStartY;
-                mTouchStartX = mTouchCurrentX;
-                mTouchStartY = mTouchCurrentY;
-                layoutParams.x += mMoveX;
-                layoutParams.y += mMoveY;
-
-                windowManager.updateViewLayout(floatView, layoutParams);
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                windowManager.updateViewLayout(floatView, layoutParams);
-            }
-            return false;
-        }
-    }*/
 }

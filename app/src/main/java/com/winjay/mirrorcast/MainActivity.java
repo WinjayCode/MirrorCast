@@ -6,8 +6,10 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.winjay.mirrorcast.car.server.TipsActivity;
 import com.winjay.mirrorcast.common.BaseActivity;
 import com.winjay.mirrorcast.databinding.ActivityMainBinding;
+import com.winjay.mirrorcast.util.DisplayUtil;
 import com.winjay.mirrorcast.util.LogUtil;
 
 /**
@@ -52,10 +54,22 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     public void onClick(View v) {
         if (v == binding.vehicleBtn) {
             startActivity(VehicleActivity.class);
+
+//            int virtualDisplay = DisplayUtil.createVirtualDisplay(0);
+//            LogUtil.d(TAG, "id: " + virtualDisplay);
         }
         if (v == binding.phoneBtn) {
             startActivity(PhoneActivity.class);
+
+//            startActivity(TipsActivity.class);
+
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LogUtil.d(TAG);
     }
 
     @Override
