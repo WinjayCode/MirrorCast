@@ -1,6 +1,5 @@
 package com.winjay.scrcpy;
 
-import android.os.Handler;
 import android.text.TextUtils;
 import android.view.MotionEvent;
 
@@ -131,18 +130,30 @@ public class DroidSocketClient extends WebSocketClient {
             e.printStackTrace();
         }
 
+        // 这步操作是为了解决因为默认windowingMode（fullscreen）启动Activity到虚拟屏上，TipsActivity模拟Home键会杀死所有Activity，
+        // 但是windowingMode 6(multi-window)启动的话就不会出现该情况，但又会导致录屏黑屏，所有为了解决该矛盾，
+        // 先以windowingMode 6(multi-window)启动后，再以windowingMode 2（fullscreen）启动一次，可以规避到该问题。
+        // 1 ok?
+        /*String command2 = "am start -n " + split[1] + Constants.COMMAND_SPLIT + split[2] + " --display " + split[3] + " --windowingMode 2";
+        Ln.d("command: " + command2);
+        try {
+            runCMDNoResult(command2);
+        } catch (Exception e) {
+            Ln.e("doCommand() error " + e.getMessage());
+            e.printStackTrace();
+        }*/
 
-
-        /*new Thread() {
+        // 2 ok
+        new Thread() {
             @Override
             public void run() {
                 super.run();
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(200);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                String command2 = "am start -n " + split[1] + Constants.COMMAND_SPLIT + split[2] + " --display " + split[3];
+                String command2 = "am start -n " + split[1] + Constants.COMMAND_SPLIT + split[2] + " --display " + split[3] + " --windowingMode 2";
                 Ln.d("command: " + command2);
                 try {
                     runCMDNoResult(command2);
@@ -151,7 +162,7 @@ public class DroidSocketClient extends WebSocketClient {
                     e.printStackTrace();
                 }
             }
-        }.start();*/
+        }.start();
     }
 
     private void handleTouchEvent(String message) {
@@ -195,7 +206,6 @@ public class DroidSocketClient extends WebSocketClient {
             public void run() {
                 try {
                     runCMDNoResult(command);
-//                        runCMD(command);
                 } catch (Exception e) {
                     Ln.i("doCommand() error " + e.getMessage());
                     e.printStackTrace();

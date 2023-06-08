@@ -168,7 +168,10 @@ public class PhoneAOAActivity extends BaseActivity implements View.OnClickListen
 
     @Override
     public void onDetached() {
+        LogUtil.d(TAG);
+
         finish();
+        System.exit(0);
     }
 
     private void notifyScrcpyServerJarIsExist() {

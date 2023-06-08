@@ -1,6 +1,7 @@
 package com.winjay.mirrorcast.aoa;
 
 import android.content.pm.ActivityInfo;
+import android.graphics.SurfaceTexture;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbInterface;
@@ -10,7 +11,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.RelativeLayout;
 
@@ -95,7 +97,7 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 
         binding.aoaSendBtn.setOnClickListener(this);
 
-        binding.phoneMainScreenSv.setOnTouchListener(new View.OnTouchListener() {
+        binding.phoneMainScreenTv.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 String mockEvent = Constants.SCRCPY_COMMAND_MOTION_EVENT
@@ -146,12 +148,37 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                     binding.aoaMsgTv.setText(binding.aoaMsgTv.getText() + "\n" + (String) msg.obj);
                     break;
                 case MESSAGE_START_SCREEN_DECODE:
-                    RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) binding.phoneMainScreenSv.getLayoutParams();
+                    RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) binding.phoneMainScreenTv.getLayoutParams();
                     layoutParams.width = msg.arg1;
                     layoutParams.height = msg.arg2;
-                    binding.phoneMainScreenSv.setLayoutParams(layoutParams);
+                    binding.phoneMainScreenTv.setLayoutParams(layoutParams);
 
-                    binding.phoneMainScreenSv.getHolder().addCallback(new SurfaceHolder.Callback() {
+                    binding.phoneMainScreenTv.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+                        @Override
+                        public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
+                            if (binding.phoneMainScreenTv.getVisibility() == View.VISIBLE) {
+                                mScreenDecoder = new ScreenDecoder();
+                                mScreenDecoder.startDecode(new Surface(surface), msg.arg1, msg.arg2);
+                                isStartMirrorCast = true;
+                            }
+                        }
+
+                        @Override
+                        public void onSurfaceTextureSizeChanged(@NonNull SurfaceTexture surface, int width, int height) {
+
+                        }
+
+                        @Override
+                        public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
+                            return false;
+                        }
+
+                        @Override
+                        public void onSurfaceTextureUpdated(@NonNull SurfaceTexture surface) {
+
+                        }
+                    });
+                    /*binding.phoneMainScreenSv.getHolder().addCallback(new SurfaceHolder.Callback() {
                         @Override
                         public void surfaceCreated(@NonNull SurfaceHolder holder) {
                         }
@@ -168,8 +195,8 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
                         @Override
                         public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
                         }
-                    });
-                    binding.phoneMainScreenSv.setVisibility(View.VISIBLE);
+                    });*/
+                    binding.phoneMainScreenTv.setVisibility(View.VISIBLE);
                     break;
             }
         }
@@ -186,18 +213,8 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
 
     @Override
     public void onReceivedData(byte[] data, int length) {
-        LogUtil.d(TAG, "startMirrorCastSucceed=" + startMirrorCastSucceed + ", isStartMirrorCast=" + isStartMirrorCast);
-        if (startMirrorCastSucceed && isStartMirrorCast) {
-            if (mScreenDecoder != null) {
-//                LogUtil.d(TAG, "decoding...");
-                // 解析投屏视频数据
-                mScreenDecoder.decodeData(data);
-            }
-            return;
-        }
-
         String message = new String(data, 0, length);
-        LogUtil.d(TAG, "message=" + message);
+//        LogUtil.d(TAG, "message=" + message);
 
         // 接收手机端是否存在scrcpy-server.jar文件的结果
         if (message.startsWith(Constants.APP_REPLY_CHECK_SCRCPY_SERVER_JAR)) {
@@ -255,6 +272,22 @@ public class VehicleAOAActivity extends BaseActivity implements View.OnClickList
             m.arg1 = videoWidth;
             m.arg2 = videoHeight;
             mHandler.sendMessage(m);
+            return;
+        }
+
+        // return car system
+        if (message.startsWith(Constants.APP_COMMAND_RETURN_CAR_SYSTEM)) {
+            goHome();
+            return;
+        }
+
+        LogUtil.d(TAG, "startMirrorCastSucceed=" + startMirrorCastSucceed + ", isStartMirrorCast=" + isStartMirrorCast);
+        if (startMirrorCastSucceed && isStartMirrorCast) {
+            if (mScreenDecoder != null) {
+//                LogUtil.d(TAG, "decoding...");
+                // 解析投屏视频数据
+                mScreenDecoder.decodeData(data);
+            }
             return;
         }
 

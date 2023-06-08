@@ -61,10 +61,10 @@ public class TipsActivity extends BaseActivity {
         changeBrightness();
     }
 
-    @Override
-    public void onBackPressed() {
-        // mask back button
-    }
+//    @Override
+//    public void onBackPressed() {
+//        // mask back button
+//    }
 
     private void changeBrightness() {
         setBrightness(startBrightness);

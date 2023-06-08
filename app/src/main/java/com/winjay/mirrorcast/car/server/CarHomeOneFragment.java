@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import com.winjay.mirrorcast.R;
 import com.winjay.mirrorcast.common.BaseFragment;
 import com.winjay.mirrorcast.databinding.FragmentCarHomeOneBinding;
+import com.winjay.mirrorcast.util.LogUtil;
 
 public class CarHomeOneFragment extends BaseFragment<FragmentCarHomeOneBinding> {
     private static final String TAG = CarHomeOneFragment.class.getSimpleName();
@@ -34,6 +35,7 @@ public class CarHomeOneFragment extends BaseFragment<FragmentCarHomeOneBinding> 
 
     @Override
     protected void lazyLoad() {
+        LogUtil.d(TAG);
         mHandler.postDelayed(runnable, DELAY_TIME);
     }
 
@@ -49,12 +51,14 @@ public class CarHomeOneFragment extends BaseFragment<FragmentCarHomeOneBinding> 
 
     @Override
     protected void stopLoad() {
+        LogUtil.d(TAG);
         mHandler.removeCallbacksAndMessages(null);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        LogUtil.d(TAG);
         mHandler.removeCallbacksAndMessages(null);
     }
 }

@@ -10,12 +10,12 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.winjay.mirrorcast.AppApplication;
-import com.winjay.mirrorcast.app_socket.AppSocketManager;
-import com.winjay.mirrorcast.common.BaseFragment;
 import com.winjay.mirrorcast.Constants;
 import com.winjay.mirrorcast.R;
+import com.winjay.mirrorcast.aoa.AOAAccessoryManager;
+import com.winjay.mirrorcast.app_socket.AppSocketManager;
+import com.winjay.mirrorcast.common.BaseFragment;
 import com.winjay.mirrorcast.databinding.FragmentCarHomeTwoBinding;
-import com.winjay.mirrorcast.util.ActivityListUtil;
 import com.winjay.mirrorcast.util.LogUtil;
 
 import java.util.ArrayList;
@@ -115,7 +115,12 @@ public class CarHomeTwoFragment extends BaseFragment<FragmentCarHomeTwoBinding> 
                 } else if (appBean.getAppName().equals("返回车机系统")) {
                     // TODO 此处的逻辑根据具体需求决定！（和ShowCarLauncherActivity对应）
                     LogUtil.d(TAG, "return car system.");
-                    AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_RETURN_CAR_SYSTEM);
+                    if (AppApplication.connectType == Constants.CONNECT_TYPE_WIFI_DIRECT) {
+                        AppSocketManager.getInstance().sendMessage(Constants.APP_COMMAND_RETURN_CAR_SYSTEM);
+                    } else if (AppApplication.connectType == Constants.CONNECT_TYPE_AOA) {
+                        AOAAccessoryManager.getInstance().sendAOAMessage(Constants.APP_COMMAND_RETURN_CAR_SYSTEM);
+                    }
+
                     // close TipsActivity and CarLauncherActivity
                     /*LogUtil.d(TAG, "activity count=" + ActivityListUtil.getActivityCount());
                     for (int i = ActivityListUtil.getActivityCount() - 2; i < ActivityListUtil.getActivityCount(); i++) {

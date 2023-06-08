@@ -62,7 +62,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             startActivity(PhoneActivity.class);
 
 //            startActivity(TipsActivity.class);
-
         }
     }
 

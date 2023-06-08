@@ -28,8 +28,8 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/aoa_send_rl" />
 
-    <SurfaceView
-        android:id="@+id/phone_main_screen_sv"
+    <TextureView
+        android:id="@+id/phone_main_screen_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"/>
